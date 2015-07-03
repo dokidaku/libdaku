@@ -9,13 +9,20 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
+    if (argc < 3) {
         printf("Video converting based on frame pullers & pushers\n");
-        printf("Usage: %s <input> <output>\n", argv[0]);
+        printf("Usage: %s <input> <output> [<frame_rate>] [<bit_rate>]\n", argv[0]);
         printf("Reads a video and outputs it to another format.\n");
         return 1;
     }
     av_register_all();
+
+    // Parse arguments
+    int frame_rate = 0, bit_rate = 0;
+    if (argc >= 4) frame_rate = atoi(argv[3]);
+    if (argc >= 5) bit_rate = atoi(argv[4]);
+    if (frame_rate <= 0) frame_rate = 30;
+    if (bit_rate < 0) bit_rate = 0; // Let the frame_pusher automatically fill this
 
     int ret;
     frame_puller *puller;
@@ -24,7 +31,9 @@ int main(int argc, char *argv[])
         return ret;
     }
     frame_pusher *pusher;
-    if ((ret = frame_pusher_open(&pusher, argv[2], 30, puller->codec_ctx->width, puller->codec_ctx->height)) < 0) {
+    if ((ret = frame_pusher_open(&pusher, argv[2], frame_rate,
+        puller->codec_ctx->width, puller->codec_ctx->height, bit_rate)) < 0)
+    {
         av_log(NULL, AV_LOG_ERROR, "Cannot initialize the output file\n");
         return ret;
     }

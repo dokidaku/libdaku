@@ -29,10 +29,11 @@ typedef struct __frame_pusher {
  * @param[in]  vid_framerate The framerate of the output video.
  * @param[in]  width         The frame width of the output video.
  * @param[in]  height        The frame height of the output video.
+ * @param[in]  vid_bitrate   The bit rate of the output video. Automatically fills if set to 0.
  * @return 0 if succeeded, a negative error code otherwise.
  */
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
-    int vid_framerate, int width, int height);
+    int vid_framerate, int width, int height, int vid_bitrate);
 
 /**
  * Write one frame of video to the output.

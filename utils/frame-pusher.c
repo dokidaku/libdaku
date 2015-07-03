@@ -1,7 +1,7 @@
 #include "frame-pusher.h"
 
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
-    int vid_framerate, int width, int height)
+    int vid_framerate, int width, int height, int vid_bitrate)
 {
     *o_fp = NULL;
     int ret;
@@ -29,7 +29,7 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->vid_height = fp->vid_stream->codec->height = height;
     fp->vid_stream->id = 0;
     fp->vid_stream->codec->codec_id = AV_CODEC_ID_H264;
-    fp->vid_stream->codec->bit_rate = 400000;
+    fp->vid_stream->codec->bit_rate = vid_bitrate > 0 ? vid_bitrate : 1200000;
     fp->vid_stream->codec->pix_fmt = AV_PIX_FMT_YUV420P;
     fp->vid_stream->codec->gop_size = 24;
     fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){1, vid_framerate};
