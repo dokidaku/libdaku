@@ -80,9 +80,10 @@ read_again:
 
 void frame_puller_free(frame_puller *fp)
 {
+    if (!fp) return;
     if (!fp->first_packet) av_free_packet(&fp->packet);
-    av_free(fp->frame);
-    avcodec_close(fp->codec_ctx);
-    avformat_close_input(&fp->fmt_ctx);
+    if (fp->frame) av_free(fp->frame);
+    if (fp->codec_ctx) avcodec_close(fp->codec_ctx);
+    if (fp->fmt_ctx) avformat_close_input(&fp->fmt_ctx);
     av_free(fp);
 }
