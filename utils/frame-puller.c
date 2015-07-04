@@ -22,6 +22,39 @@ int _frame_puller_new(frame_puller **o_fp, const char *path)
     return 0;
 }
 
+// Internally-used function
+// Initializes a new frame_puller struct with a given media type.
+int _frame_puller_init(frame_puller *fp, enum AVMediaType media_type)
+{
+    int ret;
+    // Find the first video stream
+    // TODO: Perhaps some files have two or more video streams?
+    unsigned int i;
+    for (i = 0; i < fp->fmt_ctx->nb_streams; ++i)
+        if (fp->fmt_ctx->streams[i]->codec->codec_type == media_type) {
+            fp->target_stream_idx = i; break;
+        }
+    if (fp->target_stream_idx == -1) {
+        av_log(NULL, AV_LOG_ERROR, "frame_puller: Cannot find a valid stream\n");
+        return AVERROR_INVALIDDATA;
+    }
+    // Create the codec context and open codec
+    // Seems using the original codec context cause potential problems...?
+    if (!(fp->codec = avcodec_find_decoder(fp->fmt_ctx->streams[i]->codec->codec_id))) {
+        av_log(NULL, AV_LOG_ERROR, "frame_puller: Cannot find a proper decoder\n");
+        return AVERROR_INVALIDDATA;
+    }
+    fp->codec_ctx = avcodec_alloc_context3(fp->codec);
+    if ((ret = avcodec_copy_context(fp->codec_ctx, fp->fmt_ctx->streams[i]->codec)) < 0) return ret;
+    if ((ret = avcodec_open2(fp->codec_ctx, fp->codec, NULL)) < 0) return ret;
+    // Allocate a frame to store the read data
+    fp->frame = av_frame_alloc();
+}
+
+int frame_puller_open_audio(frame_puller **o_fp, const char *path)
+{
+}
+
 int frame_puller_open_video(frame_puller **o_fp, const char *path)
 {
     *o_fp = NULL;
@@ -30,28 +63,7 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path)
 
     if ((ret = _frame_puller_new(&fp, path)) < 0) return ret;
     fp->type = FRAME_PULLER_VIDEO;
-    // Find the first video stream
-    // TODO: Perhaps some files have two or more video streams?
-    unsigned int i;
-    for (i = 0; i < fp->fmt_ctx->nb_streams; ++i)
-        if (fp->fmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            fp->target_stream_idx = i; break;
-        }
-    if (fp->target_stream_idx == -1) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot find a valid video stream\n");
-        return AVERROR_INVALIDDATA;
-    }
-    // Create the codec context and open codec
-    // Seems using the original codec context cause potential problems...?
-    if (!(fp->codec = avcodec_find_decoder(fp->fmt_ctx->streams[i]->codec->codec_id))) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot find a proper decoder\n");
-        return AVERROR_INVALIDDATA;
-    }
-    fp->codec_ctx = avcodec_alloc_context3(fp->codec);
-    if ((ret = avcodec_copy_context(fp->codec_ctx, fp->fmt_ctx->streams[i]->codec)) < 0) return ret;
-    if ((ret = avcodec_open2(fp->codec_ctx, fp->codec, NULL)) < 0) return ret;
-    // Allocate a frame to store the read data
-    fp->frame = av_frame_alloc();
+    if ((ret = _frame_puller_init(fp, AVMEDIA_TYPE_VIDEO)) < 0) return ret;
 
     *o_fp = fp;
     return 0;

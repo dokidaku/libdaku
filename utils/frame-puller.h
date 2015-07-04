@@ -3,6 +3,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+//#include <libswresample/libswresample.h>
 
 enum frame_puller_type {
     FRAME_PULLER_AUDIO,
@@ -21,6 +22,16 @@ typedef struct __frame_puller {
     unsigned char first_packet;
     AVPacket packet;
 } frame_puller;
+
+/**
+ * Create a new frame_puller struct with a given video/audio file.
+ * This puller only pulls audio frames in frame_puller_next_frame and ignore other frames.
+ *
+ * @param[out] o_fp  The pointer of the struct generated.
+ * @param[in]  path  The path of the video/audio file.
+ * @return 0 if succeeded, a negative error code otherwise.
+ */
+int frame_puller_open_audio(frame_puller **o_fp, const char *path);
 
 /**
  * Create a new frame_puller struct with a given video file.
