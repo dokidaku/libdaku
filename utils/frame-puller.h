@@ -4,7 +4,7 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-//#include <libswresample/libswresample.h>
+#include <libswresample/swresample.h>
 
 enum frame_puller_type {
     FRAME_PULLER_AUDIO,
@@ -18,7 +18,10 @@ typedef struct __frame_puller {
     AVCodecContext *codec_ctx;
     AVCodec *codec;
 
-    struct SwsContext *sws_ctx;
+    union {
+        struct SwsContext *sws_ctx;
+        struct SwrContext *swr_ctx;
+    } libsw;
     int pict_bufsize;
     uint8_t *pict_buf;
     AVFrame *orig_frame;            /**< The last pulled frame. */
