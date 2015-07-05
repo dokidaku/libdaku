@@ -4,20 +4,26 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
 
 typedef struct __frame_pusher {
     AVFormatContext *fmt_ctx;
     AVStream *aud_stream, *vid_stream;
     int vid_width, vid_height;
+    int aud_samplerate;
 
     struct SwsContext *sws_ctx;
+    struct SwrContext *swr_ctx;
     int pict_bufsize;
-    uint8_t *pict_buf;
-    AVFrame *frame;     /**< The last written frame. */
+    uint8_t *pict_buf;  /**< The buffer for storing converted data. Equals to aud_frame->data. */
+    AVFrame *aud_frame; /**< The last written audio frame. */
+    AVFrame *aud_buf;   /**< The buffer for storing raw S16 audio data. */
+    AVFrame *vid_frame; /**< The last written video frame. */
     // The packet needn't be freed before reading the first packet.
     unsigned char first_packet;
     AVPacket packet;    /**< The last written packet. */
-    int last_pts;
+    int last_aud_pts, last_vid_pts;
+    int nb_aud_buffered_samples, nb_aud_samples_per_frame;
 } frame_pusher;
 
 /**
@@ -33,6 +39,7 @@ typedef struct __frame_pusher {
  * @return 0 if succeeded, a negative error code otherwise.
  */
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
+    int aud_samplerate,
     int vid_framerate, int width, int height, int vid_bitrate);
 
 /**
@@ -47,6 +54,16 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
  * @return 0 if succeeded, a negative error code otherwise.
  */
 int frame_pusher_write_video(frame_pusher *fp, uint8_t **rgb_data, int *linesize, int delta_pts);
+
+/**
+ * Write one sample of audio to the output.
+ *
+ * @param[in] fp  The frame_pusher to use. The frame will be written according to parameters here.
+ * @param[in] lch The amplitude value of the left channel.
+ * @param[in] rch The amplitude value of the right channel.
+ * @return 0 if succeeded, a negative error code otherwise.
+ */
+int frame_pusher_write_audio(frame_pusher *fp, int16_t lch, int16_t rch);
 
 /**
  * Close a frame_pusher, write the file trailer and release all resources it used.
