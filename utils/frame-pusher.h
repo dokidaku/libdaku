@@ -66,6 +66,14 @@ int frame_pusher_write_video(frame_pusher *fp, uint8_t **rgb_data, int *linesize
 int frame_pusher_write_audio(frame_pusher *fp, int16_t lch, int16_t rch);
 
 /**
+ * Return whether current audio's duration is longer than or equal to the video's.
+ *
+ * @param[in] fp  The frame_pusher context.
+ * @return 1 if current audio's duration is longer than or equal to the video's, 0 otherwise.
+ */
+unsigned char frame_pusher_audio_catches_audio(frame_pusher *fp);
+
+/**
  * Close a frame_pusher, write the file trailer and release all resources it used.
  *
  * @param[in] fp  The pointer to the struct to be closed.

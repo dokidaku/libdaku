@@ -46,27 +46,33 @@ int main(int argc, char *argv[])
 
     int nb_frames_read = 0, nb_samples_read = 0;
     int i;
-    unsigned char has_video = 1, has_audio = 1;
+    unsigned char has_video = 1, has_audio = 1, catches;
     // Continuously get frames and convert.
     // TODO: Interleave video frames and audio frames with the help of av_compare_ts.
-    while (frame_puller_next_frame(puller_a, &frame) >= 0) {
-        nb_samples_read += frame->nb_samples;
-        for (i = 0; i < frame->nb_samples; ++i)
-            if ((ret = frame_pusher_write_audio(pusher,
-                *(int16_t *)&frame->data[0][i + i + 1], *(int16_t *)&frame->data[1][i + i + 1])) < 0)
-            {
-                av_log(NULL, AV_LOG_ERROR, "Failed to write one of the samples. Quitting T^T\n");
-                return ret;
-            }
-    }
-    while (frame_puller_next_frame(puller_v, &frame) >= 0) {
-        ++nb_frames_read;
-        // Save to output.
-        if ((ret = frame_pusher_write_video(pusher, frame->data, frame->linesize, 1)) < 0) {
-            av_log(NULL, AV_LOG_ERROR, "Failed to write frame #%d. Quitting T^T\n", nb_frames_read);
-            return ret;
+    do {
+        catches = frame_pusher_audio_catches_audio(pusher);
+        if (has_video && (catches || !has_audio)) {
+            if (frame_puller_next_frame(puller_a, &frame) >= 0) {
+                nb_samples_read += frame->nb_samples;
+                for (i = 0; i < frame->nb_samples; ++i)
+                    if ((ret = frame_pusher_write_audio(pusher,
+                        *(int16_t *)&frame->data[0][i + i + 1], *(int16_t *)&frame->data[1][i + i + 1])) < 0)
+                    {
+                        av_log(NULL, AV_LOG_ERROR, "Failed to write one of the samples. Quitting T^T\n");
+                        return ret;
+                    }
+            } else has_video = 0;
+        } else if (has_audio && (!catches || !has_video)) {
+            if (frame_puller_next_frame(puller_v, &frame) >= 0) {
+                ++nb_frames_read;
+                // Save to output.
+                if ((ret = frame_pusher_write_video(pusher, frame->data, frame->linesize, 1)) < 0) {
+                    av_log(NULL, AV_LOG_ERROR, "Failed to write frame #%d. Quitting T^T\n", nb_frames_read);
+                    return ret;
+                }
+            } else has_audio = 0;
         }
-    }
+    } while (has_video || has_audio);
     printf("Total video frames: %d\nTotal audio samples: %d\n", nb_frames_read, nb_samples_read);
 
     // Release resources

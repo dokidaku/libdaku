@@ -178,6 +178,14 @@ int frame_pusher_write_audio(frame_pusher *fp, int16_t lch, int16_t rch)
     else return 0;
 }
 
+unsigned char frame_pusher_audio_catches_audio(frame_pusher *fp)
+{
+    return av_compare_ts(
+        fp->last_vid_pts, fp->vid_stream->codec->time_base,
+        fp->last_aud_pts, fp->aud_stream->codec->time_base
+    ) >= 0;
+}
+
 void frame_pusher_close(frame_pusher *fp)
 {
     if (!fp) return;
