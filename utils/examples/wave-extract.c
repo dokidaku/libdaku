@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
         ++nb_frames_read;
         nb_samples_read += frame->nb_samples;
         for (i = 0; i < frame->nb_samples; ++i)
-            printf("%d %d\n", *(int16_t *)&frame->data[0][i + i], *(int16_t *)&frame->data[1][i + i]);
+            printf("%d %d\n", *(int16_t *)&frame->data[0][i + i + 1], *(int16_t *)&frame->data[1][i + i + 1]);
     }
     printf("Total frames: %d\nTotal samples: %d\n", nb_frames_read, nb_samples_read);
 
