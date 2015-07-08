@@ -1,7 +1,7 @@
 // Example for frame_puller and frame_pusher: video converting / transcoding
 // $ gcc -c ../frame-puller.c -o frame-puller.o
 // $ gcc -c ../frame-pusher.c -o frame-pusher.o
-// $ gcc convert.c frame-puller_v.o frame-pusher.o -o convert `pkg-config --cflags --libs libavformat libswscale libswresample`
+// $ gcc convert.c frame-puller.o frame-pusher.o -o convert `pkg-config --cflags --libs libavformat libswscale libswresample`
 
 #include "../frame-puller.h"
 #include "../frame-pusher.h"

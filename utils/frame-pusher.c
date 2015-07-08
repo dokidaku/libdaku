@@ -81,9 +81,10 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->aud_buf->format = fp->aud_frame->format = fp->aud_stream->codec->sample_fmt;
     fp->aud_buf->channel_layout = fp->aud_frame->channel_layout = fp->aud_stream->codec->channel_layout;
     fp->aud_buf->sample_rate = fp->aud_frame->sample_rate = fp->aud_stream->codec->sample_rate;
-    if (aud_codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE)
+    if (aud_codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE) {
         fp->nb_aud_samples_per_frame = 4096;
-    else fp->nb_aud_samples_per_frame = fp->aud_stream->codec->frame_size;
+        av_log(NULL, AV_LOG_INFO, "frame_pusher: codec has variable frame size capability\n");
+    } else fp->nb_aud_samples_per_frame = fp->aud_stream->codec->frame_size;
     fp->aud_buf->nb_samples = fp->aud_frame->nb_samples = fp->nb_aud_samples_per_frame;
     av_log(NULL, AV_LOG_INFO, "frame_pusher: number of samples per frame = %d\n", fp->nb_aud_samples_per_frame);
     if ((ret = av_frame_get_buffer(fp->aud_frame, 0)) < 0) return ret;

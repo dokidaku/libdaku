@@ -71,7 +71,7 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
     fp->frame->format = AV_SAMPLE_FMT_S16P;
     fp->frame->channel_layout = fp->codec_ctx->channel_layout;
     fp->frame->sample_rate = fp->codec_ctx->sample_rate;
-    if (fp->codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE)
+    if ((fp->codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE) || !strcmp(fp->codec->name, "pcm_mulaw"))
         fp->frame->nb_samples = 4096;
     else fp->frame->nb_samples = fp->codec_ctx->frame_size;
     av_log(NULL, AV_LOG_INFO, "frame_puller: number of samples per frame = %d\n", fp->frame->nb_samples);
