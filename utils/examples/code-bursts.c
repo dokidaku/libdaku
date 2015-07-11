@@ -24,20 +24,30 @@ int main(int argc, char *argv[])
     }
 
     uint8_t *picture[4] = { 0 };
-    int linesize[4] = { 0 }, bufsize = 1024 * 402 * sizeof(uint8_t);
+    int linesize[4] = { 0 }, bufsize = 640 * 3 * 400 * sizeof(uint8_t);
     picture[0] = (uint8_t *)av_malloc(bufsize);
     picture[1] = (uint8_t *)av_malloc(bufsize);
-    linesize[0] = 1024 * sizeof(uint8_t);
+    linesize[0] = 640 * 3 * sizeof(uint8_t);
 
-    // Video frames
+    // Generate frames
     int i, j;
-    uint8_t t;
+    uint8_t grey;
+    float loudness;
     for (i = 0; i < 300; ++i) {
-        t = (int)((double)i / 299.0 * 255.0);
-        memset(picture[0], t, bufsize);
+        // Video
+        for (j = linesize[0] * i; j < linesize[0] * (i + 1); ++j)
+            picture[0][j] = random() % 256;
+        memset(picture[0] + linesize[0] * (i + 1), i < 150 ? 255 : 0, linesize[0]);
+        grey = (int)((double)i / 299.0 * 255.0);
+        memset(picture[0] + linesize[0] * (i + 2), grey, bufsize);
         frame_pusher_write_video(pusher, picture, linesize, 1);
+        // Audio
+        loudness = ((1 + sin((float)i / 75.0 * M_PI)) / 2);
+        loudness = loudness * loudness * 2 + 0.2;
         for (j = 0; j < 441000 / 300; ++j)
-            frame_pusher_write_audio(pusher, sin(i * 441000 / 300 + j) * 2000, sin(i * 441000 / 300 + j) * 2000);
+            frame_pusher_write_audio(pusher,
+                (int16_t)(loudness * (float)(random() % 200 - 100)),
+                (int16_t)(loudness * (float)(random() % 200 - 100)));
     }
 
     // Release resources
