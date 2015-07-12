@@ -26,13 +26,15 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->fmt_ctx->pb = io_ctx;
     // > Create the streams. Here we simply create one for video and one for audio.
     // >> The audio stream
-    AVCodec *aud_codec = avcodec_find_encoder(AV_CODEC_ID_PCM_MULAW);
+    AVCodec *aud_codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
     fp->aud_stream = avformat_new_stream(fp->fmt_ctx, aud_codec);
     fp->aud_stream->id = 0;
-    fp->aud_stream->codec->codec_id = AV_CODEC_ID_PCM_MULAW;
+    fp->aud_stream->codec->codec_id = AV_CODEC_ID_AAC;
     fp->aud_stream->codec->bit_rate = 64000;
     fp->aud_stream->codec->sample_rate = fp->aud_samplerate = aud_samplerate;
-    fp->aud_stream->codec->sample_fmt = AV_SAMPLE_FMT_S16;
+    // >>> http://stackoverflow.com/questions/22989838
+    // >>> TODO: Add an option to set the codec and the sample format.
+    fp->aud_stream->codec->sample_fmt = fp->aud_stream->codec->codec->sample_fmts[0];
     fp->aud_stream->codec->channel_layout = AV_CH_LAYOUT_STEREO;
     fp->aud_stream->codec->channels = 2;
     fp->aud_stream->codec->time_base = fp->aud_stream->time_base = (AVRational){1, aud_samplerate};
