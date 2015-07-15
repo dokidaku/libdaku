@@ -56,7 +56,8 @@ int main(int argc, char *argv[])
                 nb_samples_read += frame->nb_samples;
                 for (i = 0; i < frame->nb_samples; ++i)
                     if ((ret = frame_pusher_write_audio(pusher,
-                        *(int16_t *)&frame->data[0][i + i + 1], *(int16_t *)&frame->data[1][i + i + 1])) < 0)
+                        *(int16_t *)&frame->data[0][i + i + 1],
+                        *(int16_t *)&frame->data[puller_a->codec_ctx->channels >= 2 ? 1 : 0][i + i + 1])) < 0)
                     {
                         av_log(NULL, AV_LOG_ERROR, "Failed to write one of the samples. Quitting T^T\n");
                         return ret;

@@ -51,8 +51,12 @@ int main(int argc, char *argv[])
         sprintf(path, "%s-%d.ppm", argv[2], nb_frames_read);
         save_frame(path, frame, fp->codec_ctx->width, fp->codec_ctx->height);
     }
+    if (nb_frames_read % 50) {
+        sprintf(path, "%s-%d.ppm", argv[2], nb_frames_read);
+        save_frame(path, frame, fp->codec_ctx->width, fp->codec_ctx->height);
+    }
     printf("Total frames: %d\nTotal snapshots generated: %d\n",
-        nb_frames_read, nb_frames_read / 50);
+        nb_frames_read, nb_frames_read / 50 + (nb_frames_read % 50 ? 1 : 0));
 
     // Release resources
     frame_puller_free(fp);
