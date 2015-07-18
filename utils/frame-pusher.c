@@ -1,6 +1,8 @@
 #include "frame-pusher.h"
 #include <libavutil/opt.h>
 
+#define DAKU_NOPACKETSWRITTEN 2333333
+
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
     int aud_samplerate,
     int vid_framerate, int width, int height, int vid_bitrate)
@@ -135,9 +137,28 @@ int frame_pusher_write_video(frame_pusher *fp, uint8_t **rgb_data, int *linesize
         av_packet_rescale_ts(&fp->packet, fp->vid_stream->codec->time_base, fp->vid_stream->time_base);
         fp->packet.stream_index = fp->vid_stream->index;
         if ((ret = av_interleaved_write_frame(fp->fmt_ctx, &fp->packet)) < 0) return ret;
-    }
+    } else return DAKU_NOPACKETSWRITTEN;
 
     return 0;
+}
+
+// Internally-used function
+// Write all buffered video frames to the output.
+// Inspiration: https://ffmpeg.org/pipermail/libav-user/2013-February/003663.html
+// TODO: Reduce code duplication
+int _frame_pusher_write_buffered_video(frame_pusher *fp)
+{
+    int ret, got_packet;
+    do {
+        av_free_packet(&fp->packet);
+        memset(&fp->packet, 0, sizeof(fp->packet));
+        av_init_packet(&fp->packet);
+        if ((ret = avcodec_encode_video2(fp->vid_stream->codec, &fp->packet, NULL, &got_packet)) < 0) return ret;
+        av_packet_rescale_ts(&fp->packet, fp->vid_stream->codec->time_base, fp->vid_stream->time_base);
+        fp->packet.stream_index = fp->vid_stream->index;
+        // FIXME: fp->packet.pts might be zero and cause errors?
+        if (fp->packet.pts && (ret = av_interleaved_write_frame(fp->fmt_ctx, &fp->packet)) < 0) return ret;
+    } while (got_packet);
 }
 
 // Internally-used function
@@ -163,7 +184,7 @@ int _frame_pusher_write_audio_frame(frame_pusher *fp)
         av_packet_rescale_ts(&fp->packet, fp->aud_stream->codec->time_base, fp->aud_stream->time_base);
         fp->packet.stream_index = fp->aud_stream->index;
         if ((ret = av_interleaved_write_frame(fp->fmt_ctx, &fp->packet)) < 0) return ret;
-    }
+    } else return DAKU_NOPACKETSWRITTEN;
 
     return 0;
 }
@@ -193,6 +214,9 @@ void frame_pusher_close(frame_pusher *fp)
 {
     if (!fp) return;
     if (fp->fmt_ctx) {
+        if (_frame_pusher_write_buffered_video(fp) < 0)
+            av_log(NULL, AV_LOG_ERROR, "Cannot write buffered video frames to output. This may cause frame loss... QAQ\n");
+        av_interleaved_write_frame(fp->fmt_ctx, NULL);
         av_write_trailer(fp->fmt_ctx);
         avformat_free_context(fp->fmt_ctx);
     }
