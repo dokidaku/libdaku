@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     for (i = 0; i < VID_FRATE * VID_DUR; ++i) {
         // Video
         for (j = linesize[0] * i; j < linesize[0] * (i + 1); ++j)
-            picture[0][j] = random() % 256;
+            picture[0][j] = rand() % 256;
         memset(picture[0] + linesize[0] * (i + 1), i < 150 ? 255 : 0, linesize[0]);
         grey = (int)((double)i / (double)(VID_FRATE * VID_DUR - 1) * 255.0);
         memset(picture[0] + linesize[0] * (i + 2), grey, bufsize);
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
         loudness = loudness * loudness * 2 + 0.2;
         for (j = 0; j < AUD_SRATE / VID_FRATE; ++j)
             frame_pusher_write_audio(pusher,
-                (int16_t)(loudness * (float)(random() % 200 - 100)),
-                (int16_t)(loudness * (float)(random() % 200 - 100)));
+                (int16_t)(loudness * (float)(rand() % 200 - 100)),
+                (int16_t)(loudness * (float)(rand() % 200 - 100)));
     }
 
     // Release resources

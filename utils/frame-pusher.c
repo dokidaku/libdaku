@@ -159,6 +159,7 @@ int _frame_pusher_write_buffered_video(frame_pusher *fp)
         // FIXME: fp->packet.pts might be zero and cause errors?
         if (fp->packet.pts && (ret = av_interleaved_write_frame(fp->fmt_ctx, &fp->packet)) < 0) return ret;
     } while (got_packet);
+    return 0;
 }
 
 // Internally-used function
