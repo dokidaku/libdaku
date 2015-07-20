@@ -11,16 +11,18 @@ int main(int argc, char *argv[])
 {
     if (argc < 3) {
         printf("Video converting based on frame pullers & pushers\n");
-        printf("Usage: %s <input> <output> [<frame_rate>] [<bit_rate>]\n", argv[0]);
+        printf("Usage: %s <input> <output> [<start_time> [<frame_rate> [<bit_rate>]]]\n", argv[0]);
         printf("Reads a video and outputs it to another format.\n");
         return 1;
     }
     av_register_all();
 
     // Parse arguments
+    float start_time = 0;
     int frame_rate = 0, bit_rate = 0;
-    if (argc >= 4) frame_rate = atoi(argv[3]);
-    if (argc >= 5) bit_rate = atoi(argv[4]);
+    if (argc >= 4) start_time = atof(argv[3]);
+    if (argc >= 5) frame_rate = atoi(argv[4]);
+    if (argc >= 6) bit_rate = atoi(argv[5]);
     if (frame_rate <= 0) frame_rate = 30;
     if (bit_rate < 0) bit_rate = 0; // Let the frame_pusher automatically fill this
 
@@ -47,6 +49,10 @@ int main(int argc, char *argv[])
     int nb_frames_read = 0, nb_samples_read = 0;
     int i;
     unsigned char has_video = 1, has_audio = 1, catches;
+    if (start_time) {
+        frame_puller_seek(puller_a, start_time);
+        frame_puller_seek(puller_v, start_time);
+    }
     // Continuously get frames and convert.
     // TODO: Interleave video frames and audio frames with the help of av_compare_ts.
     do {

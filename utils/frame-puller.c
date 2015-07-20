@@ -158,6 +158,24 @@ read_again:
     return 0;
 }
 
+int frame_puller_seek(frame_puller *fp, float time)
+{
+    int ret;
+    AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
+    int64_t timestamp = (int64_t)(time * (float)tb->den / (float)tb->num);
+    if ((ret = av_seek_frame(fp->fmt_ctx, fp->target_stream_idx, timestamp, AVSEEK_FLAG_BACKWARD)) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking\n");
+        return ret;
+    }
+    do {
+        if ((ret = frame_puller_next_frame(fp, NULL)) < 0) {
+            av_log(NULL, AV_LOG_ERROR, "Cannot seek precisely\n");
+            return ret;
+        }
+    } while (fp->packet.pts < timestamp);
+    return 0;
+}
+
 void frame_puller_free(frame_puller *fp)
 {
     if (!fp) return;
