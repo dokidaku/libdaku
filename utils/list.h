@@ -27,8 +27,14 @@ void *daku_list_at(daku_list *list, int idx);
 #define daku_list_foreach(__list, __itrname)    \
     for ((__list)->itr = (__list)->head,        \
         __itrname = (__list)->itr->data;        \
-        (__list)->itr->next != NULL;            \
+        (__list)->itr != NULL;                  \
         (__list)->itr = (__list)->itr->next,    \
-        __itrname = (__list)->itr->data)
+        __itrname = (__list)->itr ? (__list)->itr->data : NULL)
+#define daku_list_foreach_t(__list, __type, __itrname) \
+    for ((__list)->itr = (__list)->head,            \
+        __itrname = (__type)(__list)->itr->data;    \
+        (__list)->itr != NULL;                      \
+        (__list)->itr = (__list)->itr->next,        \
+        __itrname = (__list)->itr ? (__list)->itr->data : NULL)
 
 #endif
