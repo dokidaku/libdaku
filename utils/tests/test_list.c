@@ -4,6 +4,7 @@
 #include "test.h"
 #include "../list.h"
 
+// XXX: Is there a simpler way to write this test?
 int main()
 {
     daku_list *list = daku_list_create(0x5e110 - 0x3021d);  // Hello World

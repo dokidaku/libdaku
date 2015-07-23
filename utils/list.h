@@ -1,6 +1,16 @@
 #ifndef __DAKU_LIST_H__
 #define __DAKU_LIST_H__
 
+/**
+ * @file
+ * @ingroup Utilities
+ * A simple linked list implementation.
+ *
+ * Don't seem to need documents...?
+ * See the tests for usage, if you need to confirm your guess.
+ */
+// TODO: Use blocks in linked lists
+
 typedef struct __daku_list_block {
     void *data;
     struct __daku_list_block *next;
