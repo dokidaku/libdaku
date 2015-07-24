@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 daku_matter *daku_matter_create()
 {
@@ -80,12 +81,15 @@ void __save_frame_ppm(const uint8_t *rgb_data, int width, int height, int linesi
 #define MIN(__a, __b) ((__a) < (__b) ? (__a) : (__b))
 void daku_world_write(daku_world *world, const char *path)
 {
+    clock_t start_time = clock();
+
     frame_pusher *pusher;
     if (frame_pusher_open(&pusher, path, 44100, world->fps, world->width, world->height, 800000) < 0) return;
     unsigned int line_size = world->width * 3 * sizeof(uint8_t);
     if (line_size % 64) line_size += (64 - line_size % 64); // Will this work...?
     unsigned int buf_size = line_size * world->height;
     uint8_t *pict = (uint8_t *)malloc(buf_size);
+    uint16_t *ipict = (uint16_t *)malloc(buf_size * 2);     // The internal picture used for rendering
     uint8_t *pusher_pict[4] = { pict };
     // The buffer size needs to be multiplied by 3 because the format is RGB24
     int pusher_linesize[4] = { line_size };
@@ -106,7 +110,7 @@ void daku_world_write(daku_world *world, const char *path)
     int x0, y0, x, y, w, h;
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
-        memset(pict, 0, buf_size);
+        memset(ipict, 0, buf_size * 2);
         cur_time = (float)frame_num / (float)world->fps;
         daku_list_foreach_t(world->population, daku_matter *, m)
             if (m && m->start_time <= cur_time
@@ -124,14 +128,23 @@ void daku_world_write(daku_world *world, const char *path)
                 h = MIN(m->pict_height, world->height - y0);
                 for (y = 0; y < h; ++y)
                     for (x = 0; x < w; ++x) {
-                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3] = m->picture[(int)(y * m->pict_width * 3) + x * 3];
-                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width * 3) + x * 3 + 1];
-                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width * 3) + x * 3 + 2];
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0] = m->picture[(int)(y * m->pict_width + x) * 3 + 0] << 8;
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width + x) * 3 + 1] << 8;
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width + x) * 3 + 2] << 8;
                     }
             }
         // Save.
+        // TODO: Directly use RGB48 format in frame pushers.
+        for (y = 0; y < world->height; ++y)
+            for (x = 0; x < world->width; ++x) {
+                pict[y * line_size + x * 3 + 0] = ipict[(y * world->width + x) * 3 + 0] >> 8;
+                pict[y * line_size + x * 3 + 1] = ipict[(y * world->width + x) * 3 + 1] >> 8;
+                pict[y * line_size + x * 3 + 2] = ipict[(y * world->width + x) * 3 + 2] >> 8;
+            }
         frame_pusher_write_video(pusher, pusher_pict, pusher_linesize, 1);
     }
     frame_pusher_close(pusher);
+    printf("Video time: %f s\n", world->duration);
+    printf("Execution time: %f s\n", (float)(clock() - start_time) / CLOCKS_PER_SEC);
 }
 #undef MIN
