@@ -28,7 +28,7 @@ typedef struct __daku_action {
 } daku_action;
 
 typedef struct __daku_world {
-    float width, height;
+    int width, height;
     float duration;
     daku_list/* struct __daku_matter */ *population;
 

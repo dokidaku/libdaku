@@ -50,7 +50,7 @@ void daku_matter_init(daku_matter *m)
     m->picture = (uint8_t *)malloc(m->pict_width * m->pict_height * 3 * sizeof(uint8_t));
 }
 
-daku_world *daku_world_create(float width, float height, float duration)
+daku_world *daku_world_create(int width, int height, float duration)
 {
     daku_world *ret = (daku_world *)malloc(sizeof(daku_world));
     ret->width = width; ret->height = height;
@@ -83,9 +83,10 @@ void daku_world_write(daku_world *world, const char *path)
     frame_pusher *pusher;
     if (frame_pusher_open(&pusher, path, 44100, world->fps, world->width, world->height, 800000) < 0) return;
     unsigned int line_size = world->width * 3 * sizeof(uint8_t);
+    if (line_size % 64) line_size += (64 - line_size % 64); // Will this work...?
     unsigned int buf_size = line_size * world->height;
     uint8_t *pict = (uint8_t *)malloc(buf_size);
-    uint8_t *pusher_pict[4] = { pict, (uint8_t *)malloc(buf_size) };
+    uint8_t *pusher_pict[4] = { pict };
     // The buffer size needs to be multiplied by 3 because the format is RGB24
     int pusher_linesize[4] = { line_size };
 

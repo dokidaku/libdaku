@@ -14,7 +14,7 @@ void daku_matter_act(daku_matter *m, float start_time, daku_action *action);
 
 void daku_matter_init(daku_matter *m);
 
-daku_world *daku_world_create(float width, float height, float duration);
+daku_world *daku_world_create(int width, int height, float duration);
 
 void daku_world_populate(daku_world *world, daku_matter *resident, float start_time);
 
