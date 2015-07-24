@@ -101,7 +101,7 @@ void daku_world_write(daku_world *world, const char *path)
     }
     unsigned int frame_num = 0;
     float cur_time;
-    int x, y;
+    int x0, y0, x, y;
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
         memset(pict, 0, buf_size);
@@ -115,13 +115,14 @@ void daku_world_write(daku_world *world, const char *path)
                         && m->start_time + ac->start_time + ac->duration >= cur_time)
                     {
                         ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
-                        //printf("%f %f\n", m->x, m->y);
                     }
+                x0 = m->x - m->anchor_x * m->pict_width;
+                y0 = m->y - m->anchor_y * m->pict_height;
                 for (x = 0; x < m->pict_height; ++x)
                     for (y = 0; y < m->pict_width; ++y) {
-                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3] = m->picture[(int)(x * m->pict_width * 3) + y * 3];
-                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3 + 1] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 1];
-                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
+                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3] = m->picture[(int)(x * m->pict_width * 3) + y * 3];
+                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3 + 1] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 1];
+                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
                     }
             }
         // Save.

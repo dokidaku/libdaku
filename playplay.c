@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
     m = daku_matter_create();
     daku_matter_setlife(m, 7);
     daku_matter_setsize(m, 200, 400);
-    daku_matter_setpos(m, 100, 233);
+    daku_matter_setanchor(m, 0, 0);
+    daku_matter_setpos(m, 0, 233);
     daku_matter_act(m, 0, daku_matter_shape(7, DAKU_SHAPE_RECT, 0x66ccff));
     daku_matter_act(m, 2, daku_fx_moveby(3, 75, 90));
     daku_world_populate(world, m, 5);
