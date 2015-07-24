@@ -77,6 +77,7 @@ void __save_frame_ppm(const uint8_t *rgb_data, int width, int height, int linesi
     fclose(fp);
 }
 
+#define MIN(__a, __b) ((__a) < (__b) ? (__a) : (__b))
 void daku_world_write(daku_world *world, const char *path)
 {
     frame_pusher *pusher;
@@ -101,7 +102,7 @@ void daku_world_write(daku_world *world, const char *path)
     }
     unsigned int frame_num = 0;
     float cur_time;
-    int x0, y0, x, y;
+    int x0, y0, x, y, w, h;
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
         memset(pict, 0, buf_size);
@@ -118,11 +119,13 @@ void daku_world_write(daku_world *world, const char *path)
                     }
                 x0 = m->x - m->anchor_x * m->pict_width;
                 y0 = m->y - m->anchor_y * m->pict_height;
-                for (x = 0; x < m->pict_height; ++x)
-                    for (y = 0; y < m->pict_width; ++y) {
-                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3] = m->picture[(int)(x * m->pict_width * 3) + y * 3];
-                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3 + 1] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 1];
-                        pict[(int)(x + x0) * line_size + (int)(y + y0) * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
+                w = MIN(m->pict_width, world->width - x0);
+                h = MIN(m->pict_height, world->height - y0);
+                for (y = 0; y < h; ++y)
+                    for (x = 0; x < w; ++x) {
+                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3] = m->picture[(int)(y * m->pict_width * 3) + x * 3];
+                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width * 3) + x * 3 + 1];
+                        pict[(int)(y + y0) * line_size + (int)(x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width * 3) + x * 3 + 2];
                     }
             }
         // Save.
@@ -130,3 +133,4 @@ void daku_world_write(daku_world *world, const char *path)
     }
     frame_pusher_close(pusher);
 }
+#undef MIN
