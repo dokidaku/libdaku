@@ -1,5 +1,6 @@
 #include "core.h"
 #include "types.h"
+#include "utils/frame-pusher.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,9 +79,15 @@ void __save_frame_ppm(const uint8_t *rgb_data, int width, int height, int linesi
 
 void daku_world_write(daku_world *world, const char *path)
 {
+    frame_pusher *pusher;
+    if (frame_pusher_open(&pusher, path, 44100, world->fps, world->width, world->height, 800000) < 0) return;
     unsigned int line_size = world->width * 3 * sizeof(uint8_t);
     unsigned int buf_size = line_size * world->height;
     uint8_t *pict = (uint8_t *)malloc(buf_size);
+    uint8_t *pusher_pict[4] = { pict, (uint8_t *)malloc(buf_size) };
+    // The buffer size needs to be multiplied by 3 because the format is RGB24
+    int pusher_linesize[4] = { line_size };
+
     daku_matter *m;
     daku_action *ac;
     daku_list_foreach_t(world->population, daku_matter *, m) if (m) {
@@ -116,11 +123,8 @@ void daku_world_write(daku_world *world, const char *path)
                         pict[x * line_size + y * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
                     }
             }
-        // Save. No, no, I'll replace this with frame pushers (/_<)
-        if (frame_num % 45 == 0) {
-            char s[15];
-            sprintf(s, "%d.ppm", frame_num);
-            __save_frame_ppm(pict, world->width, world->height, line_size, s);
-        }
+        // Save.
+        frame_pusher_write_video(pusher, pusher_pict, pusher_linesize, 1);
     }
+    frame_pusher_close(pusher);
 }

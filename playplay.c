@@ -3,11 +3,12 @@
 
 int main(int argc, char *argv[])
 {
-    /*if (argc < 2) {
+    if (argc < 2) {
         printf("Usage: %s <output>\n", argv[0]);
         printf("A sample for libdaku.\n\n");
         return 888;
-    }*/
+    }
+    av_register_all();
     daku_world *world = daku_world_create(600, 600, 15);
     daku_matter *m;
 
