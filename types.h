@@ -31,6 +31,8 @@ typedef struct __daku_world {
     float width, height;
     float duration;
     daku_list/* struct __daku_matter */ *population;
+
+    int fps;
 } daku_world;
 
 #endif
