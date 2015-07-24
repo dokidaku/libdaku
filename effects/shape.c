@@ -33,8 +33,8 @@ daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int co
     ret->base.duration = duration;
     ret->base.update = _daku_matter_shape_update;
     ret->type = type;
-    ret->r = colour & 0xff0000;
-    ret->g = colour & 0x00ff00;
-    ret->b = colour & 0x0000ff;
+    ret->r = (colour & 0xff0000) >> 16;
+    ret->g = (colour & 0x00ff00) >> 8;
+    ret->b = (colour & 0x0000ff);
     return (daku_action *)ret;
 }
