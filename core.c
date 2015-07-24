@@ -115,12 +115,13 @@ void daku_world_write(daku_world *world, const char *path)
                         && m->start_time + ac->start_time + ac->duration >= cur_time)
                     {
                         ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
+                        //printf("%f %f\n", m->x, m->y);
                     }
                 for (x = 0; x < m->pict_height; ++x)
                     for (y = 0; y < m->pict_width; ++y) {
-                        pict[x * line_size + y * 3] = m->picture[(int)(x * m->pict_width * 3) + y * 3];
-                        pict[x * line_size + y * 3 + 1] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 1];
-                        pict[x * line_size + y * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
+                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3] = m->picture[(int)(x * m->pict_width * 3) + y * 3];
+                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3 + 1] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 1];
+                        pict[(int)(x + m->x) * line_size + (int)(y + m->y) * 3 + 2] = m->picture[(int)(x * m->pict_width * 3) + y * 3 + 2];
                     }
             }
         // Save.

@@ -5,5 +5,6 @@
 #include "core.h"
 
 #include "effects/matters.h"
+#include "effects/duang.h"
 
 #endif
