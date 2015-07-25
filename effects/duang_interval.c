@@ -1,4 +1,5 @@
 #include "duang.h"
+#include <malloc.h>
 
 struct __daku_fx_move {
     daku_action base;
