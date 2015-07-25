@@ -30,6 +30,13 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_matter_shape(9, DAKU_SHAPE_RECT, 0x99ffff, 128));
     daku_world_populate(world, m, 4);
 
+    m = daku_matter_create();
+    daku_matter_setlife(m, 5);
+    daku_matter_setsize(m, 300, 200);
+    daku_matter_setpos(m, 300, 300);
+    daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5, 300, 200));
+    daku_world_populate(world, m, 0);
+
     daku_world_write(world, argv[1]);
 
     return 0;
