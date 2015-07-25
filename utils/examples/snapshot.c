@@ -25,9 +25,9 @@ int save_frame(const char *path, AVFrame *frame, int width, int height)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
+    if (argc < 3) {
         printf("Video snapshots based on frame pullers\n");
-        printf("Usage: %s <input> <output_pattern>\n", argv[0]);
+        printf("Usage: %s <input> <output_pattern> [<width> <height>]\n", argv[0]);
         printf("Extracts images from a video.\n");
         printf("The images will be captured once every 50 frames and are in PPM format.\n");
         printf("The frame numbers and the .ppm suffix will be appended to output_pattern.\n");
@@ -35,9 +35,15 @@ int main(int argc, char *argv[])
     }
     av_register_all();
 
+    int output_w = 0, output_h = 0;
+    if (argc >= 5) {
+        output_w = atoi(argv[3]);
+        output_h = atoi(argv[4]);
+    }
+
     int ret;
     frame_puller *fp;
-    if ((ret = frame_puller_open_video(&fp, argv[1])) < 0) {
+    if ((ret = frame_puller_open_video(&fp, argv[1], output_w, output_h)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
         return ret;
     }
@@ -49,11 +55,11 @@ int main(int argc, char *argv[])
     while (frame_puller_next_frame(fp, &frame) >= 0) if (++nb_frames_read % 50 == 0) {
         // Save a snapshot
         sprintf(path, "%s-%d.ppm", argv[2], nb_frames_read);
-        save_frame(path, frame, fp->codec_ctx->width, fp->codec_ctx->height);
+        save_frame(path, frame, fp->output_width, fp->output_height);
     }
     if (nb_frames_read % 50) {
         sprintf(path, "%s-%d.ppm", argv[2], nb_frames_read);
-        save_frame(path, frame, fp->codec_ctx->width, fp->codec_ctx->height);
+        save_frame(path, frame, fp->output_width, fp->output_height);
     }
     printf("Total frames: %d\nTotal snapshots generated: %d\n",
         nb_frames_read, nb_frames_read / 50 + (nb_frames_read % 50 ? 1 : 0));

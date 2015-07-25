@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     int ret;
     frame_puller *puller_a, *puller_v;
-    if ((ret = frame_puller_open_video(&puller_v, argv[1])) < 0) {
+    if ((ret = frame_puller_open_video(&puller_v, argv[1], 0, 0)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
         return ret;
     }
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     }
     frame_pusher *pusher;
     if ((ret = frame_pusher_open(&pusher, argv[2], puller_a->codec_ctx->sample_rate, frame_rate,
-        puller_v->codec_ctx->width, puller_v->codec_ctx->height, bit_rate)) < 0)
+        puller_v->output_width, puller_v->output_height, bit_rate)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "Cannot initialize the output file\n");
         return ret;

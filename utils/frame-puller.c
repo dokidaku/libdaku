@@ -99,7 +99,7 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
     return 0;
 }
 
-int frame_puller_open_video(frame_puller **o_fp, const char *path)
+int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height)
 {
     *o_fp = NULL;
     int ret;
@@ -115,10 +115,11 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path)
     fp->frame = av_frame_alloc();
     // > Assign the frame with the allocated buffer
     avpicture_fill((AVPicture *)fp->frame, fp->pict_buf, PIX_FMT_RGB24, width, height);
+    fp->output_width = output_width > 0 ? output_width : width;
+    fp->output_height = output_height > 0 ? output_height : height;
     fp->libsw.sws_ctx = sws_getContext(
         width, height, fp->codec_ctx->pix_fmt,
-        // TODO: Support scaling video using libswscale
-        width, height, PIX_FMT_RGB24,
+        fp->output_width, fp->output_height, PIX_FMT_RGB24,
         SWS_BILINEAR, NULL, NULL, NULL);
 
     *o_fp = fp;
