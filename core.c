@@ -49,7 +49,7 @@ void daku_matter_act(daku_matter *m, float start_time, daku_action *action)
 void daku_matter_init(daku_matter *m)
 {
     // All matters use RGBA format
-    m->picture = (uint8_t *)malloc(m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
+    m->picture = (uint16_t *)malloc(m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
 }
 
 daku_world *daku_world_create(int width, int height, float duration)
@@ -118,7 +118,7 @@ void daku_world_write(daku_world *world, const char *path)
             if (m && m->start_time <= cur_time
                 && m->start_time + m->life_time >= cur_time)
             {
-                daku_list_foreach(m->actions, ac)
+                daku_list_foreach_t(m->actions, daku_action*, ac)
                     if (ac && m->start_time + ac->start_time <= cur_time
                         && m->start_time + ac->start_time + ac->duration >= cur_time)
                     {
