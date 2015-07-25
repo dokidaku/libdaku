@@ -108,7 +108,7 @@ void daku_world_write(daku_world *world, const char *path)
     }
     unsigned int frame_num = 0;
     float cur_time;
-    int x0, y0, x, y, w, h;
+    int x0, y0, x1, y1, x, y, w, h;
     uint16_t alpha;
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
@@ -128,14 +128,16 @@ void daku_world_write(daku_world *world, const char *path)
                 y0 = m->y - m->anchor_y * m->pict_height;
                 w = MIN(m->pict_width, world->width - x0);
                 h = MIN(m->pict_height, world->height - y0);
+                x1 = x0 < 0 ? -x0 : 0;
+                y1 = y0 < 0 ? -y0 : 0;
         #define ALPHA_MIX(__orig, __new) \
             (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
-                for (y = 0; y < h; ++y)
-                    for (x = 0; x < w; ++x) {
+                for (y = y1; y < h; ++y)
+                    for (x = x1; x < w; ++x) {
                         alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3];
-                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
-                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
-                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
                     }
         #undef ALPHA_MIX
             }
