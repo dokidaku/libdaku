@@ -109,10 +109,10 @@ void daku_world_write(daku_world *world, const char *path)
     unsigned int frame_num = 0;
     float cur_time;
     int x0, y0, x, y, w, h;
+    uint16_t alpha;
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
         memset(ipict, 0, buf_size * 2);
-        memset(pict, 0, buf_size);
         cur_time = (float)frame_num / (float)world->fps;
         daku_list_foreach_t(world->population, daku_matter *, m)
             if (m && m->start_time <= cur_time
@@ -128,12 +128,16 @@ void daku_world_write(daku_world *world, const char *path)
                 y0 = m->y - m->anchor_y * m->pict_height;
                 w = MIN(m->pict_width, world->width - x0);
                 h = MIN(m->pict_height, world->height - y0);
+        #define ALPHA_MIX(__orig, __new) \
+            (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
                 for (y = 0; y < h; ++y)
                     for (x = 0; x < w; ++x) {
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0] = m->picture[(int)(y * m->pict_width + x) * 4 + 0];
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width + x) * 4 + 1];
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width + x) * 4 + 2];
+                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3];
+                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
+                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
+                        ALPHA_MIX(ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
                     }
+        #undef ALPHA_MIX
             }
         // Save.
         // TODO: Directly use RGB48 format in frame pushers.
