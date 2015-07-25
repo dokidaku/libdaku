@@ -9,6 +9,6 @@ enum daku_shape_type {
     DAKU_SHAPE_CIRCLE,
     DAKU_SHAPE_POLYGON
 };
-daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int colour);
+daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int colour, int opacity);
 
 #endif

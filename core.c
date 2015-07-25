@@ -48,7 +48,8 @@ void daku_matter_act(daku_matter *m, float start_time, daku_action *action)
 
 void daku_matter_init(daku_matter *m)
 {
-    m->picture = (uint8_t *)malloc(m->pict_width * m->pict_height * 3 * sizeof(uint8_t));
+    // All matters use RGBA format
+    m->picture = (uint8_t *)malloc(m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
 }
 
 daku_world *daku_world_create(int width, int height, float duration)
@@ -111,6 +112,7 @@ void daku_world_write(daku_world *world, const char *path)
     for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
         // Render one frame.
         memset(ipict, 0, buf_size * 2);
+        memset(pict, 0, buf_size);
         cur_time = (float)frame_num / (float)world->fps;
         daku_list_foreach_t(world->population, daku_matter *, m)
             if (m && m->start_time <= cur_time
@@ -128,9 +130,9 @@ void daku_world_write(daku_world *world, const char *path)
                 h = MIN(m->pict_height, world->height - y0);
                 for (y = 0; y < h; ++y)
                     for (x = 0; x < w; ++x) {
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0] = m->picture[(int)(y * m->pict_width + x) * 3 + 0] << 8;
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width + x) * 3 + 1] << 8;
-                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width + x) * 3 + 2] << 8;
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 0] = m->picture[(int)(y * m->pict_width + x) * 4 + 0];
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 1] = m->picture[(int)(y * m->pict_width + x) * 4 + 1];
+                        ipict[(int)((y + y0) * world->width + x + x0) * 3 + 2] = m->picture[(int)(y * m->pict_width + x) * 4 + 2];
                     }
             }
         // Save.
