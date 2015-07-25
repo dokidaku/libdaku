@@ -16,7 +16,9 @@ int _frame_puller_new(frame_puller **o_fp, const char *path)
     if ((ret = avformat_find_stream_info(fp->fmt_ctx, NULL)) < 0) return ret;
     av_dump_format(fp->fmt_ctx, 0, path, 0);    // For debug use
     fp->target_stream_idx = -1;
-    fp->frame = fp->codec_ctx = fp->codec = NULL;
+    fp->frame = NULL;
+    fp->codec_ctx = NULL;
+    fp->codec = NULL;
     fp->first_packet = 1;
     // Allocate a frame to store the read data
     fp->orig_frame = av_frame_alloc();

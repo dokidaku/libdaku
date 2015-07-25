@@ -30,11 +30,21 @@ void *daku_list_at(daku_list *list, int idx);
         (__list)->itr != NULL;                  \
         (__list)->itr = (__list)->itr->next,    \
         __itrname = (__list)->itr ? (__list)->itr->data : NULL)
+// XXX: Added before complete C++ support to be compatible with VS. XD
+#ifdef __cplusplus
+#define daku_list_foreach_t(__list, __type, __itrname) \
+    for ((__list)->itr = (__list)->head,            \
+        __itrname = reinterpret_cast<__type>((__type)(__list)->itr->data);    \
+        (__list)->itr != NULL;                      \
+        (__list)->itr = (__list)->itr->next,        \
+        __itrname = (__list)->itr ? reinterpret_cast<__type>((__list)->itr->data) : NULL)
+#else
 #define daku_list_foreach_t(__list, __type, __itrname) \
     for ((__list)->itr = (__list)->head,            \
         __itrname = (__type)(__list)->itr->data;    \
         (__list)->itr != NULL;                      \
         (__list)->itr = (__list)->itr->next,        \
-        __itrname = (__list)->itr ? (__list)->itr->data : NULL)
+        __itrname = (__list)->itr ? (__type)(__list)->itr->data : NULL)
+#endif
 
 #endif
