@@ -12,6 +12,7 @@ daku_matter *daku_matter_create()
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
     ret->x = ret->y = ret->rotation = 0;
+    ret->opacity = 65535;
     ret->flipped_x = ret->flipped_y = 0;
     ret->actions = daku_list_create(NULL);
     return ret;
@@ -136,7 +137,7 @@ void daku_world_write(daku_world *world, const char *path)
         #define COPY_PICT(__fx, __fy) do { \
                 for (y = y1; y < h; ++y) \
                     for (x = x1; x < w; ++x) { \
-                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3]; \
+                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3] * m->opacity / 65535; \
                         ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
                         ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
                         ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
