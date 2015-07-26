@@ -2,6 +2,9 @@
 #include <libavformat/avformat.h>
 #include "../utils/frame-puller.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 struct __daku_video_clip {
     daku_action base;
     const char *path;
@@ -39,6 +42,7 @@ int _daku_video_clip_init(daku_action *action)
     ret->time_base = (double)tb->den / (double)tb->num;
     ret->vid_width = ret->puller->output_width;
     ret->vid_height = ret->puller->output_height;
+    return 0;
 }
 daku_action *daku_video_clip(const char *path, float start_time, float duration)
 {
@@ -49,5 +53,65 @@ daku_action *daku_video_clip(const char *path, float start_time, float duration)
     ret->base.update = &_daku_video_clip_update;
     ret->path = path;
     ret->start_time = start_time;
+    return (daku_action *)ret;
+}
+
+struct __daku_text_clip {
+    daku_action base;
+    int text_len;
+    const char *text;
+    FT_Library ft_lib;
+    FT_Face ft_face;
+};
+void _daku_text_clip_update(daku_action *action, float progress)
+{
+    struct __daku_text_clip *duang = (struct __daku_text_clip *)action;
+    int i, pen_x = 0, pen_y = 0, x, y, xx, yy;
+    int w = action->target->pict_width, h = action->target->pict_height;
+    FT_Bitmap bitmap;
+    for (i = 0; i < duang->text_len; ++i) {
+        if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
+        if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1)) continue;
+        // Draw the character
+        for (y = 0; y < bitmap.rows; ++y) {
+            yy = y + pen_y + h - duang->ft_face->glyph->bitmap_top;
+            if (yy < 0 || yy >= h) continue;
+            for (x = 0; x < bitmap.width; ++x) {
+                xx = x + pen_x + duang->ft_face->glyph->bitmap_left;
+                if (xx < 0 || xx >= w) continue;
+                action->target->picture[((h - yy) * w + xx) * 4 + 0] = action->target->picture[((h - yy) * w + xx) * 4 + 1] =
+                    action->target->picture[((h - yy) * w + xx) * 4 + 2] = 65535;
+                action->target->picture[((h - yy) * w + xx) * 4 + 3] = bitmap.buffer[y * bitmap.pitch + x] << 8;
+            }
+        }
+        pen_x += duang->ft_face->glyph->advance.x / 64;
+        pen_y += duang->ft_face->glyph->advance.y / 64;
+    }
+    FT_Bitmap_Done(duang->ft_lib, &bitmap);
+}
+daku_action *daku_text(float duration, const char *text, const char *path, int size)
+{
+    struct __daku_text_clip *ret =
+        (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
+    ret->base.duration = duration;
+    ret->base.init = NULL;
+    ret->base.update = &_daku_text_clip_update;
+    ret->text_len = strlen(text);
+    ret->text = text;
+    int ft_err_code;
+    if (FT_Init_FreeType(&ret->ft_lib) != 0) return NULL;
+    if ((ft_err_code = FT_New_Face(ret->ft_lib, path, 0, &ret->ft_face)) != 0) {
+        if (ft_err_code == FT_Err_Unknown_File_Format) {
+            av_log(NULL, AV_LOG_ERROR, "Probably unsupported font format (/_<)\n");
+            return NULL;
+        } else {
+            av_log(NULL, AV_LOG_ERROR, "Cannot open the font file\n");
+            return NULL;
+        }
+    }
+    if (FT_Set_Pixel_Sizes(ret->ft_face, size, size)) {
+        av_log(NULL, AV_LOG_ERROR, "Invalid font size, perhaps?\n");
+        return NULL;
+    }
     return (daku_action *)ret;
 }

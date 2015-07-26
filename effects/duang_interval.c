@@ -31,6 +31,7 @@ int _daku_fx_moveto_init(daku_action *action)
     struct __daku_fx_move *duang = (struct __daku_fx_move *)action;
     duang->x -= action->target->x;
     duang->y -= action->target->y;
+    return 0;
 }
 daku_action *daku_fx_moveto(float duration, float dx, float dy)
 {
@@ -53,6 +54,7 @@ int _daku_fx_fadeto_init(daku_action *action)
 {
     struct __daku_fx_fade *ret = (struct __daku_fx_fade *)action;
     ret->start_opacity = action->target->opacity;
+    return 0;
 }
 daku_action *daku_fx_fadeto(float duration, uint8_t opacity)
 {
