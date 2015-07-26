@@ -26,6 +26,18 @@ daku_action *daku_fx_moveby(float duration, float dx, float dy)
     ret->y = dy;
     return (daku_action *)ret;
 }
+int _daku_fx_moveto_init(daku_action *action)
+{
+    struct __daku_fx_move *duang = (struct __daku_fx_move *)action;
+    duang->x -= action->target->x;
+    duang->y -= action->target->y;
+}
+daku_action *daku_fx_moveto(float duration, float dx, float dy)
+{
+    daku_action *ret = daku_fx_moveby(duration, dx, dy);
+    ret->init = &_daku_fx_moveto_init;
+    return ret;
+}
 
 struct __daku_fx_fade {
     daku_action base;
@@ -51,4 +63,12 @@ daku_action *daku_fx_fadeto(float duration, uint8_t opacity)
     ret->base.update = &_daku_fx_fadeto_update;
     ret->end_opacity = opacity << 8;
     return (daku_action *)ret;
+}
+daku_action *daku_fx_fadein(float duration)
+{
+    return daku_fx_fadeto(duration, 255);
+}
+daku_action *daku_fx_fadeout(float duration)
+{
+    return daku_fx_fadeto(duration, 0);
 }

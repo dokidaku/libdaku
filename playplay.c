@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_matter_shape(7, DAKU_SHAPE_RECT, 0x66ccff, 255));
     daku_matter_act(m, 2, daku_fx_moveby(3, 233, 90));
     daku_matter_act(m, 6, daku_fx_moveby(0.5, 0, 350));
+    daku_matter_act(m, 6.5, daku_fx_moveto(0.5, 0, 0));
+    m->opacity = 64;
+    daku_matter_act(m, 0, daku_fx_fadein(2));
     daku_world_populate(world, m, 5);
 
     m = daku_matter_create();

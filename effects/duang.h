@@ -4,8 +4,11 @@
 #include "../types.h"
 
 // duang_interval.c
-daku_action *daku_fx_moveby(float duration, float dx, float dy);
+daku_action *daku_fx_moveby(float duration, float dx, float dy);    // d stands for delta
+daku_action *daku_fx_moveto(float duration, float dx, float dy);    // d stands for destination
 
 daku_action *daku_fx_fadeto(float duration, uint8_t opacity);
+daku_action *daku_fx_fadein(float duration);
+daku_action *daku_fx_fadeout(float duration);
 
 #endif
