@@ -12,6 +12,7 @@ daku_matter *daku_matter_create()
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
     ret->x = ret->y = ret->rotation = 0;
+    ret->flipped_x = ret->flipped_y = 0;
     ret->actions = daku_list_create(NULL);
     return ret;
 }
@@ -132,13 +133,25 @@ void daku_world_write(daku_world *world, const char *path)
                 y1 = y0 < 0 ? -y0 : 0;
         #define ALPHA_MIX(__orig, __new) \
             (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
-                for (y = y1; y < h; ++y)
-                    for (x = x1; x < w; ++x) {
-                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3];
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
-                    }
+        #define COPY_PICT(__fx, __fy) do { \
+                for (y = y1; y < h; ++y) \
+                    for (x = x1; x < w; ++x) { \
+                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3]; \
+                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
+                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
+                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
+                    } \
+                } while (0)
+                // XXX: Will the compiler detect unchanged values (__fx and__fy) in loops and optimize?
+                // We won't need these macros if so.
+                if (m->flipped_y) {
+                    if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, m->pict_height - y - 1);
+                    else COPY_PICT(x, m->pict_height - y - 1);
+                } else {
+                    if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, y);
+                    else COPY_PICT(x, y);
+                }
+        #undef COPY_PICT
         #undef ALPHA_MIX
             }
         // Save.

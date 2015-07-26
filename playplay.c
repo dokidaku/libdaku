@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 300, 200);
     daku_matter_setpos(m, 300, 300);
     daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5, 300, 200));
+    m->flipped_y = 1;
+    m->flipped_x = 1;
     daku_world_populate(world, m, 0);
 
     daku_world_write(world, argv[1]);

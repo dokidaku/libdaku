@@ -14,6 +14,7 @@ typedef struct __daku_matter {
     float pict_width, pict_height;
     float anchor_x, anchor_y;
     float x, y, rotation;
+    unsigned char flipped_x, flipped_y;
     uint16_t *picture;
     daku_list/* struct __daku_action */ *actions;
 } daku_matter;
