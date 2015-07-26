@@ -18,12 +18,14 @@ void _daku_video_clip_update(daku_action *action, float progress)
         frame_puller_next_frame(duang->puller, NULL);
     }
     AVFrame *f = duang->puller->frame;
+    uint16_t *frame_pict = (uint16_t *)f->data[0];
+    int subscript_inc = f->linesize[0] / 2;
     for (y = 0; y < duang->vid_height; ++y)
         for (x = 0; x < duang->vid_width; ++x) {
-            action->target->picture[(y * duang->vid_width + x) * 4 + 0] = f->data[0][y * f->linesize[0] + x * 3 + 0] << 8;
-            action->target->picture[(y * duang->vid_width + x) * 4 + 1] = f->data[0][y * f->linesize[0] + x * 3 + 1] << 8;
-            action->target->picture[(y * duang->vid_width + x) * 4 + 2] = f->data[0][y * f->linesize[0] + x * 3 + 2] << 8;
-            action->target->picture[(y * duang->vid_width + x) * 4 + 3] = 65535;
+            action->target->picture[((y * duang->vid_width + x) << 2) + 0] = frame_pict[y * subscript_inc + x * 3 + 0];
+            action->target->picture[((y * duang->vid_width + x) << 2) + 1] = frame_pict[y * subscript_inc + x * 3 + 1];
+            action->target->picture[((y * duang->vid_width + x) << 2) + 2] = frame_pict[y * subscript_inc + x * 3 + 2];
+            action->target->picture[((y * duang->vid_width + x) << 2) + 3] = 65535;
         }
 }
 
@@ -33,7 +35,7 @@ daku_action *daku_video_clip(const char *path, float start_time, float duration,
         (struct __daku_video_clip *)malloc(sizeof(struct __daku_video_clip));
     ret->base.duration = duration;
     ret->base.update = &_daku_video_clip_update;
-    if (frame_puller_open_video(&ret->puller, path, width, height) < 0) return NULL;
+    if (frame_puller_open_video(&ret->puller, path, width, height, 1) < 0) return NULL;
     if (frame_puller_seek(ret->puller, start_time) < 0) return NULL;
     AVRational *tb = &ret->puller->fmt_ctx->streams[ret->puller->target_stream_idx]->time_base;
     ret->start_time = start_time;

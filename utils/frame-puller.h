@@ -52,7 +52,7 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path);
  * @param[in]  output_height The height to scale to. Will keep the original height if set to zero.
  * @return 0 if succeeded, a negative error code otherwise.
  */
-int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height);
+int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, unsigned char use_rgb48);
 
 /**
  * Pull the next targeted frame (video / audio frame depending on the puller's type).
