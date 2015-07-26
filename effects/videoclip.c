@@ -4,6 +4,7 @@
 
 struct __daku_video_clip {
     daku_action base;
+    const char *path;
     frame_puller *puller;
     float start_time;
     double time_base;
@@ -28,19 +29,25 @@ void _daku_video_clip_update(daku_action *action, float progress)
             action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 3] = 65535;
         }
 }
-
-daku_action *daku_video_clip(const char *path, float start_time, float duration, int width, int height)
+int _daku_video_clip_init(daku_action *action)
+{
+    struct __daku_video_clip *ret = (struct __daku_video_clip *)action;
+    int width = action->target->pict_width, height = action->target->pict_height;
+    if (frame_puller_open_video(&ret->puller, ret->path, width, height, 1) < 0) return -4;
+    if (frame_puller_seek(ret->puller, ret->start_time) < 0) return -6;
+    AVRational *tb = &ret->puller->fmt_ctx->streams[ret->puller->target_stream_idx]->time_base;
+    ret->time_base = (double)tb->den / (double)tb->num;
+    ret->vid_width = ret->puller->output_width;
+    ret->vid_height = ret->puller->output_height;
+}
+daku_action *daku_video_clip(const char *path, float start_time, float duration)
 {
     struct __daku_video_clip *ret =
         (struct __daku_video_clip *)malloc(sizeof(struct __daku_video_clip));
     ret->base.duration = duration;
+    ret->base.init = &_daku_video_clip_init;
     ret->base.update = &_daku_video_clip_update;
-    if (frame_puller_open_video(&ret->puller, path, width, height, 1) < 0) return NULL;
-    if (frame_puller_seek(ret->puller, start_time) < 0) return NULL;
-    AVRational *tb = &ret->puller->fmt_ctx->streams[ret->puller->target_stream_idx]->time_base;
+    ret->path = path;
     ret->start_time = start_time;
-    ret->time_base = (double)tb->den / (double)tb->num;
-    ret->vid_width = ret->puller->output_width;
-    ret->vid_height = ret->puller->output_height;
     return (daku_action *)ret;
 }

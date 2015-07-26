@@ -4,6 +4,6 @@
 #include "../types.h"
 
 // videoclip.c
-daku_action *daku_video_clip(const char *path, float start_time, float duration, int width, int height);
+daku_action *daku_video_clip(const char *path, float start_time, float duration);
 
 #endif

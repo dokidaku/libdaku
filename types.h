@@ -20,12 +20,16 @@ typedef struct __daku_matter {
     daku_list/* struct __daku_action */ *actions;
 } daku_matter;
 
+typedef int (*daku_action_init_func)
+    (struct __daku_action *action);
 typedef void (*daku_action_update_func)
     (struct __daku_action *action, float progress);
 
 typedef struct __daku_action {
     struct __daku_matter *target;
     float start_time, duration;
+    unsigned char initialized;
+    daku_action_init_func init;
     daku_action_update_func update;
 } daku_action;
 

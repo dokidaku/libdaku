@@ -124,6 +124,10 @@ void daku_world_write(daku_world *world, const char *path)
                     if (ac && m->start_time + ac->start_time <= cur_time
                         && m->start_time + ac->start_time + ac->duration >= cur_time)
                     {
+                        if (!ac->initialized) {
+                            ac->initialized = 1;
+                            if (ac->init) ac->init(ac);
+                        }
                         ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
                     }
                 x0 = m->x - m->anchor_x * m->pict_width;
