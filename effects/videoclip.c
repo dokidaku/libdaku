@@ -4,6 +4,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <ftbitmap.h>
 
 struct __daku_video_clip {
     daku_action base;
@@ -69,9 +70,13 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int i, pen_x = 0, pen_y = 0, x, y, xx, yy;
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
+    // Conservatively allocate twice as much as needed.
+    // The characters *might* become weird if we don't do so... (-_-;)
+    // I don't know much, don't trick me...
+    bitmap.buffer = (unsigned char *)malloc(w * h * sizeof(unsigned char) * 2);
     for (i = 0; i < duang->text_len; ++i) {
         if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
-        if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1)) continue;
+        if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1) != 0) continue;
         // Draw the character
         for (y = 0; y < bitmap.rows; ++y) {
             yy = y + pen_y + h - duang->ft_face->glyph->bitmap_top;

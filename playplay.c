@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     daku_world *world = daku_world_create(600, 600, 15);
     daku_matter *m;
 
-    /*m = daku_matter_create();
+    m = daku_matter_create();
     daku_matter_setlife(m, 7);
     daku_matter_setsize(m, 200, 400);
     daku_matter_setanchor(m, 0, 0);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
     m->flipped_y = 1;
     m->flipped_x = 1;
-    daku_world_populate(world, m, 0);*/
+    daku_world_populate(world, m, 0);
 
     m = daku_matter_create();
     daku_matter_setlife(m, 4);
