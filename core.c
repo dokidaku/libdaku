@@ -135,9 +135,9 @@ void daku_world_write(daku_world *world, const char *path)
                 for (y = y1; y < h; ++y)
                     for (x = x1; x < w; ++x) {
                         alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3];
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
-                        ALPHA_MIX(ipict[(int)((world->height - y - y0) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)(y * m->pict_width + x) * 4 + 0]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)(y * m->pict_width + x) * 4 + 1]);
+                        ALPHA_MIX(ipict[(int)((world->height - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)(y * m->pict_width + x) * 4 + 2]);
                     }
         #undef ALPHA_MIX
             }

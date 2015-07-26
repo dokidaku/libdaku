@@ -22,10 +22,10 @@ void _daku_video_clip_update(daku_action *action, float progress)
     int subscript_inc = f->linesize[0] / 2;
     for (y = 0; y < duang->vid_height; ++y)
         for (x = 0; x < duang->vid_width; ++x) {
-            action->target->picture[((y * duang->vid_width + x) << 2) + 0] = frame_pict[y * subscript_inc + x * 3 + 0];
-            action->target->picture[((y * duang->vid_width + x) << 2) + 1] = frame_pict[y * subscript_inc + x * 3 + 1];
-            action->target->picture[((y * duang->vid_width + x) << 2) + 2] = frame_pict[y * subscript_inc + x * 3 + 2];
-            action->target->picture[((y * duang->vid_width + x) << 2) + 3] = 65535;
+            action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 0] = frame_pict[y * subscript_inc + x * 3 + 0];
+            action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 1] = frame_pict[y * subscript_inc + x * 3 + 1];
+            action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 2] = frame_pict[y * subscript_inc + x * 3 + 2];
+            action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 3] = 65535;
         }
 }
 
