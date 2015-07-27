@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 4);
-    daku_matter_setsize(m, 600, 72);
+    daku_matter_setsize(m, 400, 272);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 0, 0);
     daku_matter_act(m, 0, daku_text(4,
@@ -55,6 +55,20 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
+    m->opacity = 0;
+    daku_world_populate(world, m, 0);
+
+    m = daku_matter_create();
+    daku_matter_setlife(m, 4);
+    daku_matter_setsize(m, 600, 120);
+    daku_matter_setanchor(m, 1, 1);
+    daku_matter_setpos(m, 600, 600);
+    daku_matter_act(m, 0, daku_text(4,
+        "by Pisces000221\n1786762946@qq.com\n@Pisces000221 on GitHub", "xx.ttf",
+        12, 0));
+    daku_matter_act(m, 0, daku_fx_fadein(0.5));
+    daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
+    daku_matter_act(m, 0, daku_fx_moveby(4, -30, 0));
     m->opacity = 0;
     daku_world_populate(world, m, 0);
 

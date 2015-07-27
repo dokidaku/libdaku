@@ -78,9 +78,10 @@ void _daku_text_clip_update(daku_action *action, float progress)
     // I don't know much, don't trick me...
     FT_Load_Char(duang->ft_face, ' ', FT_LOAD_RENDER);
     FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1);
-    pen_y = -duang->line_height;
+    pen_y = -duang->line_height;    // Padding to prevent the last line from being cut
     for (i = 0; i < duang->text_len; ++i)
         if (duang->text[i] == '\n') pen_y -= duang->line_height;
+    int content_w = 0, content_h = -pen_y;
     for (i = 0; i < duang->text_len; ++i) {
         if (duang->text[i] == '\n') {
             pen_x = 0;
@@ -103,8 +104,12 @@ void _daku_text_clip_update(daku_action *action, float progress)
         }
         pen_x += duang->ft_face->glyph->advance.x / 64;
         pen_y += duang->ft_face->glyph->advance.y / 64;
+        if (content_w < pen_x) content_w = pen_x;
     }
     FT_Bitmap_Done(duang->ft_lib, &bitmap);
+    action->target->content_width = content_w;
+    action->target->content_height = content_h;
+    action->target->content_start_y = duang->line_height;
 }
 daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
 {

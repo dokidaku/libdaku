@@ -9,6 +9,7 @@
 daku_matter *daku_matter_create()
 {
     daku_matter *ret = (daku_matter *)malloc(sizeof(daku_matter));
+    ret->content_start_x = ret->content_start_y = 0;
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
     ret->x = ret->y = ret->rotation = 0;
@@ -130,8 +131,8 @@ void daku_world_write(daku_world *world, const char *path)
                         }
                         ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
                     }
-                x0 = m->x - m->anchor_x * m->pict_width;
-                y0 = m->y - m->anchor_y * m->pict_height;
+                x0 = m->x - m->anchor_x * m->content_width - m->content_start_x;
+                y0 = m->y - m->anchor_y * m->content_height - m->content_start_y;
                 w = MIN(m->pict_width, world->width - x0);
                 h = MIN(m->pict_height, world->height - y0);
                 x1 = x0 < 0 ? -x0 : 0;
