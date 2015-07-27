@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 4);
-    daku_matter_setsize(m, 600, 70);
+    daku_matter_setsize(m, 600, 72);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 0, 0);
     daku_matter_act(m, 0, daku_text(4,
@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
         24, 0));
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
+    daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
     m->opacity = 0;
     daku_world_populate(world, m, 0);
 

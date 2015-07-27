@@ -78,10 +78,13 @@ void _daku_text_clip_update(daku_action *action, float progress)
     // I don't know much, don't trick me...
     FT_Load_Char(duang->ft_face, ' ', FT_LOAD_RENDER);
     FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1);
+    pen_y = -duang->line_height;
+    for (i = 0; i < duang->text_len; ++i)
+        if (duang->text[i] == '\n') pen_y -= duang->line_height;
     for (i = 0; i < duang->text_len; ++i) {
         if (duang->text[i] == '\n') {
             pen_x = 0;
-            pen_y -= duang->line_height;
+            pen_y += duang->line_height;
             continue;
         }
         if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
