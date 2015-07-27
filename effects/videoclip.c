@@ -61,6 +61,7 @@ struct __daku_text_clip {
     daku_action base;
     int text_len;
     const char *text;
+    int line_height;
     FT_Library ft_lib;
     FT_Face ft_face;
 };
@@ -75,6 +76,11 @@ void _daku_text_clip_update(daku_action *action, float progress)
     // I don't know much, don't trick me...
     bitmap.buffer = (unsigned char *)malloc(w * h * sizeof(unsigned char) * 2);
     for (i = 0; i < duang->text_len; ++i) {
+        if (duang->text[i] == '\n') {
+            pen_x = 0;
+            pen_y -= duang->line_height;
+            continue;
+        }
         if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
         if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1) != 0) continue;
         // Draw the character
@@ -94,7 +100,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
     }
     FT_Bitmap_Done(duang->ft_lib, &bitmap);
 }
-daku_action *daku_text(float duration, const char *text, const char *path, int size)
+daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
 {
     struct __daku_text_clip *ret =
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
@@ -103,6 +109,7 @@ daku_action *daku_text(float duration, const char *text, const char *path, int s
     ret->base.update = &_daku_text_clip_update;
     ret->text_len = strlen(text);
     ret->text = text;
+    ret->line_height = line_height > 0 ? line_height : size;
     int ft_err_code;
     if (FT_Init_FreeType(&ret->ft_lib) != 0) return NULL;
     if ((ft_err_code = FT_New_Face(ret->ft_lib, path, 0, &ret->ft_face)) != 0) {
