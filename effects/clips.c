@@ -64,7 +64,7 @@ struct __daku_text_clip {
     int line_height;
     FT_Library ft_lib;
     FT_Face ft_face;
-    unsigned char bmp_buffer;
+    unsigned char *bmp_buffer;
 };
 void _daku_text_clip_update(daku_action *action, float progress)
 {
@@ -117,13 +117,14 @@ int _daku_text_clip_init(daku_action *action)
     // Conservatively allocate twice as much as needed.
     ((struct __daku_text_clip *)action)->bmp_buffer =
         (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
+    return 0;
 }
 daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
 {
     struct __daku_text_clip *ret =
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
     ret->base.duration = duration;
-    ret->base.init = NULL;
+    ret->base.init = &_daku_text_clip_init;
     ret->base.update = &_daku_text_clip_update;
     ret->text_len = strlen(text);
     ret->text = text;
