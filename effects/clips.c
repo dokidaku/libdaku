@@ -64,6 +64,7 @@ struct __daku_text_clip {
     int line_height;
     FT_Library ft_lib;
     FT_Face ft_face;
+    unsigned char bmp_buffer;
 };
 void _daku_text_clip_update(daku_action *action, float progress)
 {
@@ -72,7 +73,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
     // Conservatively allocate twice as much as needed.
-    bitmap.buffer = (unsigned char *)malloc(w * h * sizeof(unsigned char) * 2);
+    bitmap.buffer = duang->bmp_buffer;
     // Load a space...
     // The characters *might* become weird if we don't do so... TUT
     // I don't know much, don't trick me...
@@ -111,6 +112,12 @@ void _daku_text_clip_update(daku_action *action, float progress)
     action->target->content_height = content_h;
     action->target->content_start_y = duang->line_height;
 }
+int _daku_text_clip_init(daku_action *action)
+{
+    // Conservatively allocate twice as much as needed.
+    ((struct __daku_text_clip *)action)->bmp_buffer =
+        (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
+}
 daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
 {
     struct __daku_text_clip *ret =
@@ -136,5 +143,6 @@ daku_action *daku_text(float duration, const char *text, const char *path, int s
         av_log(NULL, AV_LOG_ERROR, "Invalid font size, perhaps?\n");
         return NULL;
     }
+    ret->bmp_buffer = NULL;
     return (daku_action *)ret;
 }
