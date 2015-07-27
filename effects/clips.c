@@ -1,4 +1,4 @@
-#include "videoclip.h"
+#include "clips.h"
 #include <libavformat/avformat.h>
 #include "../utils/frame-puller.h"
 

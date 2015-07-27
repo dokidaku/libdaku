@@ -6,6 +6,6 @@
 
 #include "effects/matters.h"
 #include "effects/duang.h"
-#include "effects/videoclip.h"
+#include "effects/clips.h"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef __DAKU_VIDEOCLIP_H__
-#define __DAKU_VIDEOCLIP_H__
+#ifndef __DAKU_CLIPS_H__
+#define __DAKU_CLIPS_H__
 
 #include "../types.h"
 
