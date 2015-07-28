@@ -71,7 +71,7 @@ struct __daku_text_clip {
 void _daku_text_clip_update(daku_action *action, float progress)
 {
     struct __daku_text_clip *duang = (struct __daku_text_clip *)action;
-    int i, pen_x = 0, pen_y = 0, x, y, xx, yy;
+    int i, pen_x = 0, pen_y = 0, x, y, xx, yy, line_w = 0, line_h = duang->line_height * 2;
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
     bitmap.buffer = duang->bmp_buffer;
@@ -83,10 +83,10 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int content_w = 0, content_h = -pen_y;
 
 #define COPY_LINE_TO_PICT do \
-    for (y = 0; y < h; ++y) { \
-        yy = y + pen_y + duang->line_height; \
+    for (y = h - line_h; y < h; ++y) { \
+        yy = y + pen_y + duang->line_height;    /* Bottom padding of the line is duang->line_height */ \
         if (yy < 0 || yy >= h) continue; \
-        for (x = 0; x < w; ++x) { \
+        for (x = 0; x < line_w; ++x) { \
             action->target->picture[((h - yy - 1) * w + x) * 4 + 0] = action->target->picture[((h - yy - 1) * w + x) * 4 + 1] = \
                action->target->picture[((h - yy - 1) * w + x) * 4 + 2] = 65535; \
             action->target->picture[((h - yy - 1) * w + x) * 4 + 3] |= (duang->line_buffer[y * w + x] << 8); \
@@ -99,6 +99,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
             // Update pen
             pen_x = 0;
             pen_y += duang->line_height;
+            line_w = 0;
             memset(duang->line_buffer, 0, w * h * 2);
             continue;
         }
@@ -106,7 +107,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
         if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1) != 0) continue;
         // Draw the character
         for (y = 0; y < bitmap.rows; ++y) {
-            yy = y + h - duang->ft_face->glyph->bitmap_top - duang->line_height;
+            yy = y + h - duang->ft_face->glyph->bitmap_top - duang->line_height;    // Bottom padding of the line is duang->line_height
             if (yy < 0 || yy >= h) continue;
             for (x = 0; x < bitmap.width; ++x) {
                 xx = x + pen_x + duang->ft_face->glyph->bitmap_left;
@@ -116,6 +117,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
         }
         pen_x += duang->ft_face->glyph->advance.x / 64;
         pen_y += duang->ft_face->glyph->advance.y / 64;
+        line_w = pen_x;
         if (content_w < pen_x) content_w = pen_x;
     }
     COPY_LINE_TO_PICT;
@@ -123,6 +125,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
     action->target->content_width = content_w;
     action->target->content_height = content_h;
     action->target->content_start_y = duang->line_height;
+#undef COPY_LINE_TO_PICT
 }
 int _daku_text_clip_init(daku_action *action)
 {
