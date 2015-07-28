@@ -19,6 +19,7 @@ daku_action *daku_fx_moveby(float duration, float dx, float dy)
     struct __daku_fx_move *ret =
         (struct __daku_fx_move *)malloc(sizeof(struct __daku_fx_move));
     ret->base.duration = duration;
+    ret->base.initialized = 0;
     ret->base.init = NULL;
     ret->base.update = &_daku_fx_moveby_update;
     ret->last_progress = 0;
@@ -61,6 +62,7 @@ daku_action *daku_fx_fadeto(float duration, uint8_t opacity)
     struct __daku_fx_fade *ret =
         (struct __daku_fx_fade *)malloc(sizeof(struct __daku_fx_fade));
     ret->base.duration = duration;
+    ret->base.initialized = 0;
     ret->base.init = &_daku_fx_fadeto_init;
     ret->base.update = &_daku_fx_fadeto_update;
     ret->end_opacity = opacity << 8;

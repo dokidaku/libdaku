@@ -33,6 +33,7 @@ daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int co
     struct __daku_matter_shape *ret =
         (struct __daku_matter_shape *)malloc(sizeof(struct __daku_matter_shape));
     ret->base.duration = duration;
+    ret->base.initialized = 0;
     ret->base.update = _daku_matter_shape_update;
     ret->type = type;
     ret->r = (colour & 0xff0000) >> 8;

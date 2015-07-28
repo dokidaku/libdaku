@@ -50,6 +50,7 @@ daku_action *daku_video_clip(const char *path, float start_time, float duration)
     struct __daku_video_clip *ret =
         (struct __daku_video_clip *)malloc(sizeof(struct __daku_video_clip));
     ret->base.duration = duration;
+    ret->base.initialized = 0;
     ret->base.init = &_daku_video_clip_init;
     ret->base.update = &_daku_video_clip_update;
     ret->path = path;
@@ -65,6 +66,7 @@ struct __daku_text_clip {
     FT_Library ft_lib;
     FT_Face ft_face;
     unsigned char *bmp_buffer;
+    unsigned char *line_buffer;
 };
 void _daku_text_clip_update(daku_action *action, float progress)
 {
@@ -73,34 +75,50 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
     bitmap.buffer = duang->bmp_buffer;
+    memset(duang->line_buffer, 0, w * h * 2);
+
     pen_y = -duang->line_height;    // Padding to prevent the last line from being cut
     for (i = 0; i < duang->text_len; ++i)
         if (duang->text[i] == '\n') pen_y -= duang->line_height;
     int content_w = 0, content_h = -pen_y;
+
+#define COPY_LINE_TO_PICT do \
+    for (y = 0; y < h; ++y) { \
+        yy = y + pen_y + duang->line_height; \
+        if (yy < 0 || yy >= h) continue; \
+        for (x = 0; x < w; ++x) { \
+            action->target->picture[((h - yy - 1) * w + x) * 4 + 0] = action->target->picture[((h - yy - 1) * w + x) * 4 + 1] = \
+               action->target->picture[((h - yy - 1) * w + x) * 4 + 2] = 65535; \
+            action->target->picture[((h - yy - 1) * w + x) * 4 + 3] |= (duang->line_buffer[y * w + x] << 8); \
+        } \
+    } while (0)
+
     for (i = 0; i < duang->text_len; ++i) {
         if (duang->text[i] == '\n') {
+            COPY_LINE_TO_PICT;
+            // Update pen
             pen_x = 0;
             pen_y += duang->line_height;
+            memset(duang->line_buffer, 0, w * h * 2);
             continue;
         }
         if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
         if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1) != 0) continue;
         // Draw the character
         for (y = 0; y < bitmap.rows; ++y) {
-            yy = y + pen_y + h - duang->ft_face->glyph->bitmap_top;
+            yy = y + h - duang->ft_face->glyph->bitmap_top - duang->line_height;
             if (yy < 0 || yy >= h) continue;
             for (x = 0; x < bitmap.width; ++x) {
                 xx = x + pen_x + duang->ft_face->glyph->bitmap_left;
                 if (xx < 0 || xx >= w) continue;
-                action->target->picture[((h - yy - 1) * w + xx) * 4 + 0] = action->target->picture[((h - yy - 1) * w + xx) * 4 + 1] =
-                    action->target->picture[((h - yy - 1) * w + xx) * 4 + 2] = 65535;
-                action->target->picture[((h - yy - 1) * w + xx) * 4 + 3] = bitmap.buffer[y * bitmap.pitch + x] << 8;
+                duang->line_buffer[yy * w + xx] = bitmap.buffer[y * bitmap.pitch + x];
             }
         }
         pen_x += duang->ft_face->glyph->advance.x / 64;
         pen_y += duang->ft_face->glyph->advance.y / 64;
         if (content_w < pen_x) content_w = pen_x;
     }
+    COPY_LINE_TO_PICT;
     FT_Bitmap_Done(duang->ft_lib, &bitmap);
     action->target->content_width = content_w;
     action->target->content_height = content_h;
@@ -111,6 +129,8 @@ int _daku_text_clip_init(daku_action *action)
     // Conservatively allocate twice as much as needed.
     ((struct __daku_text_clip *)action)->bmp_buffer =
         (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
+    ((struct __daku_text_clip *)action)->line_buffer =
+        (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     return 0;
 }
 daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
@@ -118,6 +138,7 @@ daku_action *daku_text(float duration, const char *text, const char *path, int s
     struct __daku_text_clip *ret =
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
     ret->base.duration = duration;
+    ret->base.initialized = 0;
     ret->base.init = &_daku_text_clip_init;
     ret->base.update = &_daku_text_clip_update;
     ret->text_len = strlen(text);
