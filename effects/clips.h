@@ -13,6 +13,7 @@ enum daku_text_h_align {
     DAKU_HALIGN_CENTRE
 };
 daku_action *daku_text(float duration, const char *text,
-    const char *path, int size, int line_height, enum daku_text_h_align h_align);
+    const char *path, int size, int line_height, enum daku_text_h_align h_align,
+    int colour);
 
 #endif

@@ -110,6 +110,7 @@ struct __daku_text_clip {
     const char *text;
     int line_height;
     enum daku_text_h_align h_align;
+    uint16_t r, g, b;
     FT_Library ft_lib;
     FT_Face ft_face;
     unsigned char *bmp_buffer;
@@ -135,8 +136,9 @@ void _daku_text_clip_update(daku_action *action, float progress)
         yy = y + pen_y + duang->line_height;    /* Bottom padding of the line is duang->line_height */ \
         if (yy < 0 || yy >= h) continue; \
         for (x = 0; x < line_w; ++x) { \
-            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 0] = action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 1] = \
-               action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 2] = 65535; \
+            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 0] = duang->r; \
+            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 1] = duang->g; \
+            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 2] = duang->b; \
             action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 3] |= (duang->line_buffer[y * w + x] << 8); \
         } \
     } while (0)
@@ -201,7 +203,8 @@ int _daku_text_clip_init(daku_action *action)
     return 0;
 }
 daku_action *daku_text(float duration, const char *text,
-    const char *path, int size, int line_height, enum daku_text_h_align h_align)
+    const char *path, int size, int line_height, enum daku_text_h_align h_align,
+    int colour)
 {
     struct __daku_text_clip *ret =
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
@@ -213,6 +216,9 @@ daku_action *daku_text(float duration, const char *text,
     ret->text = text;
     ret->line_height = line_height > 0 ? line_height : size;
     ret->h_align = h_align;
+    ret->r = (colour & 0xff0000) >> 8;
+    ret->g = colour & 0x00ff00;
+    ret->b = (colour & 0x0000ff) << 8;
     int ft_err_code;
     if (FT_Init_FreeType(&ret->ft_lib) != 0) return NULL;
     if ((ft_err_code = FT_New_Face(ret->ft_lib, path, 0, &ret->ft_face)) != 0) {

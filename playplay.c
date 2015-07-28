@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     daku_matter_setpos(m, 0, 0);
     daku_matter_act(m, 0, daku_text(4,
         "Proudly powered by DOKIDAKU\nCC BY-NC-SA International 4.0", "xx.ttf",
-        24, 0, DAKU_HALIGN_LEFT));
+        24, 0, DAKU_HALIGN_LEFT, 0xc0ffee));
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     daku_matter_setpos(m, 600, 600);
     daku_matter_act(m, 0, daku_text(4,
         "by Pisces000221\n1786762946@qq.com\n@Pisces000221 on GitHub", "xx.ttf",
-        12, 0, DAKU_HALIGN_RIGHT));
+        12, 0, DAKU_HALIGN_RIGHT, 0xffffff));
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, -30, 0));
