@@ -50,9 +50,10 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path);
  * @param[in]  path          The path of the video file.
  * @param[in]  output_width  The width to scale to. Will keep the original width if set to zero.
  * @param[in]  output_height The height to scale to. Will keep the original height if set to zero.
+ * @param[in]  pix_fmt       The pixel format to use. Normally PIX_FMT_RGB24 is used.
  * @return 0 if succeeded, a negative error code otherwise.
  */
-int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, unsigned char use_rgb48);
+int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, enum AVPixelFormat pix_fmt);
 
 /**
  * Pull the next targeted frame (video / audio frame depending on the puller's type).

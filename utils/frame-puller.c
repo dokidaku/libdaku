@@ -99,7 +99,7 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
     return 0;
 }
 
-int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, unsigned char use_rgb48)
+int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, enum AVPixelFormat pix_fmt)
 {
     *o_fp = NULL;
     int ret;
@@ -110,7 +110,6 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_wi
     if ((ret = _frame_puller_init(fp, AVMEDIA_TYPE_VIDEO)) < 0) return ret;
     int width = fp->codec_ctx->width, height = fp->codec_ctx->height;
     // Initialize the libswscale context for converting pictures to RGB format.
-    enum AVPixelFormat pix_fmt = use_rgb48 ? PIX_FMT_RGB48 : PIX_FMT_RGB24;
     fp->pict_bufsize = avpicture_get_size(pix_fmt, width, height);
     fp->pict_buf = (uint8_t *)av_malloc(fp->pict_bufsize);
     fp->frame = av_frame_alloc();

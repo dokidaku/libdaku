@@ -45,6 +45,24 @@ int main(int argc, char *argv[])
     daku_world_populate(world, m, 0);
 
     m = daku_matter_create();
+    daku_matter_setlife(m, 5);
+    daku_matter_setsize(m, 100, 100);
+    daku_matter_setanchor(m, 1, 0);
+    daku_matter_setpos(m, 500, 100);
+    daku_matter_act(m, 0, daku_video_clip("xx.gif", 3, 5));
+    daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
+    daku_world_populate(world, m, 0);
+
+    m = daku_matter_create();
+    daku_matter_setlife(m, 5);
+    daku_matter_setsize(m, 150, 150);
+    daku_matter_setanchor(m, 0, 1);
+    daku_matter_setpos(m, 100, 500);
+    daku_matter_act(m, 0, daku_image_clip(5, "xx.png"));
+    m->flipped_x = 1;
+    daku_world_populate(world, m, 0);
+
+    m = daku_matter_create();
     daku_matter_setlife(m, 4);
     daku_matter_setsize(m, 400, 272);
     daku_matter_setanchor(m, 0, 0);

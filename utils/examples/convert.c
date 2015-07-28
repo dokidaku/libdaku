@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     int ret;
     frame_puller *puller_a, *puller_v;
-    if ((ret = frame_puller_open_video(&puller_v, argv[1], 0, 0, 0)) < 0) {
+    if ((ret = frame_puller_open_video(&puller_v, argv[1], 0, 0, PIX_FMT_RGB24)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
         return ret;
     }
