@@ -72,13 +72,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int i, pen_x = 0, pen_y = 0, x, y, xx, yy;
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
-    // Conservatively allocate twice as much as needed.
     bitmap.buffer = duang->bmp_buffer;
-    // Load a space...
-    // The characters *might* become weird if we don't do so... TUT
-    // I don't know much, don't trick me...
-    FT_Load_Char(duang->ft_face, ' ', FT_LOAD_RENDER);
-    FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1);
     pen_y = -duang->line_height;    // Padding to prevent the last line from being cut
     for (i = 0; i < duang->text_len; ++i)
         if (duang->text[i] == '\n') pen_y -= duang->line_height;
@@ -98,9 +92,9 @@ void _daku_text_clip_update(daku_action *action, float progress)
             for (x = 0; x < bitmap.width; ++x) {
                 xx = x + pen_x + duang->ft_face->glyph->bitmap_left;
                 if (xx < 0 || xx >= w) continue;
-                action->target->picture[((h - yy) * w + xx) * 4 + 0] = action->target->picture[((h - yy) * w + xx) * 4 + 1] =
-                    action->target->picture[((h - yy) * w + xx) * 4 + 2] = 65535;
-                action->target->picture[((h - yy) * w + xx) * 4 + 3] = bitmap.buffer[y * bitmap.pitch + x] << 8;
+                action->target->picture[((h - yy - 1) * w + xx) * 4 + 0] = action->target->picture[((h - yy - 1) * w + xx) * 4 + 1] =
+                    action->target->picture[((h - yy - 1) * w + xx) * 4 + 2] = 65535;
+                action->target->picture[((h - yy - 1) * w + xx) * 4 + 3] = bitmap.buffer[y * bitmap.pitch + x] << 8;
             }
         }
         pen_x += duang->ft_face->glyph->advance.x / 64;
