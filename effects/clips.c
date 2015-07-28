@@ -63,6 +63,7 @@ struct __daku_text_clip {
     int text_len;
     const char *text;
     int line_height;
+    enum daku_text_h_align h_align;
     FT_Library ft_lib;
     FT_Face ft_face;
     unsigned char *bmp_buffer;
@@ -72,6 +73,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
 {
     struct __daku_text_clip *duang = (struct __daku_text_clip *)action;
     int i, pen_x = 0, pen_y = 0, x, y, xx, yy, line_w = 0, line_h = duang->line_height * 2;
+    int max_line_w = 0;
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
     bitmap.buffer = duang->bmp_buffer;
@@ -82,15 +84,21 @@ void _daku_text_clip_update(daku_action *action, float progress)
         if (duang->text[i] == '\n') pen_y -= duang->line_height;
     int content_w = 0, content_h = -pen_y;
 
-#define COPY_LINE_TO_PICT do \
+#define COPY_LINE_TO_PICT_X(__x) do \
     for (y = h - line_h; y < h; ++y) { \
         yy = y + pen_y + duang->line_height;    /* Bottom padding of the line is duang->line_height */ \
         if (yy < 0 || yy >= h) continue; \
         for (x = 0; x < line_w; ++x) { \
-            action->target->picture[((h - yy - 1) * w + x) * 4 + 0] = action->target->picture[((h - yy - 1) * w + x) * 4 + 1] = \
-               action->target->picture[((h - yy - 1) * w + x) * 4 + 2] = 65535; \
-            action->target->picture[((h - yy - 1) * w + x) * 4 + 3] |= (duang->line_buffer[y * w + x] << 8); \
+            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 0] = action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 1] = \
+               action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 2] = 65535; \
+            action->target->picture[((h - yy - 1) * w + (__x)) * 4 + 3] |= (duang->line_buffer[y * w + x] << 8); \
         } \
+    } while (0)
+#define COPY_LINE_TO_PICT do \
+    switch (duang->h_align) { \
+        case DAKU_HALIGN_LEFT: COPY_LINE_TO_PICT_X(x); break; \
+        case DAKU_HALIGN_RIGHT: COPY_LINE_TO_PICT_X(w - 1 - line_w + x); break; \
+        case DAKU_HALIGN_CENTRE: COPY_LINE_TO_PICT_X((w - 1 - line_w) / 2 + x); break; \
     } while (0)
 
     for (i = 0; i < duang->text_len; ++i) {
@@ -118,6 +126,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
         pen_x += duang->ft_face->glyph->advance.x / 64;
         pen_y += duang->ft_face->glyph->advance.y / 64;
         line_w = pen_x;
+        if (max_line_w < line_w) max_line_w = line_w;
         if (content_w < pen_x) content_w = pen_x;
     }
     COPY_LINE_TO_PICT;
@@ -125,7 +134,16 @@ void _daku_text_clip_update(daku_action *action, float progress)
     action->target->content_width = content_w;
     action->target->content_height = content_h;
     action->target->content_start_y = duang->line_height;
+    switch (duang->h_align) {
+        case DAKU_HALIGN_LEFT:
+            action->target->content_start_x = 0; break;
+        case DAKU_HALIGN_RIGHT:
+            action->target->content_start_x = w - max_line_w - 1; break;
+        case DAKU_HALIGN_CENTRE:
+            action->target->content_start_x = (w - 1 - max_line_w) / 2; break;
+    }
 #undef COPY_LINE_TO_PICT
+#undef COPY_LINE_TO_PICT_X
 }
 int _daku_text_clip_init(daku_action *action)
 {
@@ -136,7 +154,8 @@ int _daku_text_clip_init(daku_action *action)
         (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     return 0;
 }
-daku_action *daku_text(float duration, const char *text, const char *path, int size, int line_height)
+daku_action *daku_text(float duration, const char *text,
+    const char *path, int size, int line_height, enum daku_text_h_align h_align)
 {
     struct __daku_text_clip *ret =
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
@@ -147,6 +166,7 @@ daku_action *daku_text(float duration, const char *text, const char *path, int s
     ret->text_len = strlen(text);
     ret->text = text;
     ret->line_height = line_height > 0 ? line_height : size;
+    ret->h_align = h_align;
     int ft_err_code;
     if (FT_Init_FreeType(&ret->ft_lib) != 0) return NULL;
     if ((ft_err_code = FT_New_Face(ret->ft_lib, path, 0, &ret->ft_face)) != 0) {
