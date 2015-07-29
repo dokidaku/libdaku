@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 4);
-    daku_matter_setsize(m, 400, 272);
+    daku_matter_setsize(m, 600, 272);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 0, 0);
     daku_matter_act(m, 0, daku_text(4,
-        "Proudly powered by DOKIDAKU\nCC BY-NC-SA International 4.0", "xx.ttf",
+        "Proudly powered by DOKIDAKU\nCC BY-NC-SA International 4.0\n大家好我是中文，我是中文", "xx.ttc",
         24, 0, DAKU_HALIGN_LEFT, 0xc0ffee));
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));

@@ -149,6 +149,7 @@ void _daku_text_clip_update(daku_action *action, float progress)
         case DAKU_HALIGN_CENTRE: COPY_LINE_TO_PICT_X((w - 1 - line_w) / 2 + x); break; \
     } while (0)
 
+    uint32_t charcode;
     for (i = 0; i < duang->text_len; ++i) {
         if (duang->text[i] == '\n') {
             COPY_LINE_TO_PICT;
@@ -158,8 +159,32 @@ void _daku_text_clip_update(daku_action *action, float progress)
             line_w = 0;
             memset(duang->line_buffer, 0, w * h * 2);
             continue;
+        } else if (duang->text[i] > 0) {
+            charcode = duang->text[i];
+        } else {
+            // Convert duang->text[i] ~ [i + 2] from UTF-8 to UTF-32
+            charcode = 0;
+            if ((duang->text[i] & 0xF0) == 0xF0) {
+                // 4 bits in UTF-8, 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+                if (i + 3 >= duang->text_len) break;
+                charcode = duang->text[i] & 0x07;
+                charcode = (charcode << 6) | (duang->text[i + 1] & 0x3F);
+                charcode = (charcode << 6) | (duang->text[i + 2] & 0x3F);
+                charcode = (charcode << 6) | (duang->text[i + 3] & 0x3F);
+            } else if ((duang->text[i] & 0xE0) == 0xE0) {
+                // 3 bits in UTF-8, 1110xxxx 10xxxxxx 10xxxxxx
+                if (i + 2 >= duang->text_len) break;
+                charcode = duang->text[i] & 0x0F;
+                charcode = (charcode << 6) | (duang->text[i + 1] & 0x3F);
+                charcode = (charcode << 6) | (duang->text[i + 2] & 0x3F);
+            } else if ((duang->text[i] & 0xC0) == 0xC0) {
+                // 2 bits in UTF-8, 110xxxxx 10xxxxxx
+                if (i + 1 >= duang->text_len) break;
+                charcode = duang->text[i] & 0x1F;
+                charcode = (charcode << 6) | (duang->text[i + 1] & 0x3F);
+            } else continue;
         }
-        if (FT_Load_Char(duang->ft_face, duang->text[i], FT_LOAD_RENDER) != 0) continue;
+        if (FT_Load_Char(duang->ft_face, charcode, FT_LOAD_RENDER) != 0) continue;
         if (FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1) != 0) continue;
         // Draw the character
         for (y = 0; y < bitmap.rows; ++y) {
