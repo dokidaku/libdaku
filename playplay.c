@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     daku_matter_setlife(m, 5);
     daku_matter_setsize(m, 300, 200);
     daku_matter_setpos(m, 300, 300);
-    daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
+    daku_matter_act(m, 0, daku_video_clip("xx.mp4", 8, -5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
     m->flipped_y = 1;
     m->flipped_x = 1;

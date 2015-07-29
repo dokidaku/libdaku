@@ -161,8 +161,9 @@ read_again:
     return 0;
 }
 
-int frame_puller_seek(frame_puller *fp, float time)
+int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
 {
+    if (time < 0) time = 0;
     int ret;
     AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
     int64_t timestamp = (int64_t)(time * (float)tb->den / (float)tb->num);
@@ -170,7 +171,7 @@ int frame_puller_seek(frame_puller *fp, float time)
         av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking\n");
         return ret;
     }
-    do {
+    if (precise) do {
         if ((ret = frame_puller_next_frame(fp, NULL)) < 0) {
             av_log(NULL, AV_LOG_ERROR, "Cannot seek precisely\n");
             return ret;

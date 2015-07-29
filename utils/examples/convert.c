@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
     int i;
     unsigned char has_video = 1, has_audio = 1, catches;
     if (start_time) {
-        frame_puller_seek(puller_a, start_time);
-        frame_puller_seek(puller_v, start_time);
+        frame_puller_seek(puller_a, start_time, 1);
+        frame_puller_seek(puller_v, start_time, 1);
     }
     // Continuously get frames and convert.
     // TODO: Interleave video frames and audio frames with the help of av_compare_ts.

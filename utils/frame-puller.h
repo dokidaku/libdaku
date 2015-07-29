@@ -67,13 +67,15 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_wi
 int frame_puller_next_frame(frame_puller *fp, AVFrame **o_frame);
 
 /**
- * Seek to a given time (precisely) and the next frame will be strictly after this time.
+ * Seek to a given time.
  *
- * @param[in]  fp   The frame_puller to use.
- * @param[in]  time The desired time in seconds.
+ * @param[in]  fp      The frame_puller to use.
+ * @param[in]  time    The desired time in seconds.
+ * @param[in]  precise If true, the next frame will be strictly after this time.
+ *                     Otherwise will seek to a keyframe.
  * @return 0 if succeeded, a negative error code otherwise.
  */
-int frame_puller_seek(frame_puller *fp, float time);
+int frame_puller_seek(frame_puller *fp, float time, unsigned char precise);
 
 /**
  * Free a frame_puller struct and all resources it used.
