@@ -6,7 +6,9 @@
 #include FT_FREETYPE_H
 #include <ftbitmap.h>
 
+// It's uncommon that one video has more than 80 fps.
 #define BUF_FRAME_COUNT 320
+#define BUF_FRAME_DURATION 4
 struct __daku_video_clip {
     daku_action base;
     const char *path;
@@ -39,7 +41,8 @@ void _daku_video_clip_update(daku_action *action, float progress)
         }
         if (duang->last_buf_frame_idx < 0) {
             // Refill the buffer
-            if (frame_puller_seek(duang->puller, cur_time - 2, 0) < 0) return;
+            // We don't need to be that precise, so the third parameter is set to 0.
+            if (frame_puller_seek(duang->puller, cur_time - BUF_FRAME_DURATION, 0) < 0) return;
             duang->last_buf_frame_idx = -1;
             do {
                 frame_puller_next_frame(duang->puller, NULL);
@@ -47,18 +50,18 @@ void _daku_video_clip_update(daku_action *action, float progress)
                     free(duang->buffered_frames[duang->last_buf_frame_idx].data);
                 duang->buffered_frames[duang->last_buf_frame_idx]
                     = (struct __daku_video_clip_buf_frame) {
-                        duang->puller->packet.pts, (uint8_t *)malloc(duang->puller->frame->linesize[0] * duang->vid_height),
+                        duang->puller->frame->pts, (uint8_t *)malloc(duang->puller->frame->linesize[0] * duang->vid_height),
                         duang->puller->frame->linesize[0]
                     };
                 memcpy(duang->buffered_frames[duang->last_buf_frame_idx].data,
                     duang->puller->frame->data[0],
                     duang->puller->frame->linesize[0] * duang->vid_height);
-            } while (duang->puller->packet.pts <= cur_pts);
+            } while (duang->puller->frame->pts <= cur_pts);
         }
         frame_pict = (uint16_t *)duang->buffered_frames[duang->last_buf_frame_idx].data;
         subscript_inc = duang->buffered_frames[duang->last_buf_frame_idx].linesize / 2; // frame_pict is treated as uint16_t
     } else {
-        while (duang->puller->packet.pts < cur_pts) {
+        while (!duang->puller->frame || duang->puller->frame->pts < cur_pts) {
             frame_puller_next_frame(duang->puller, NULL);
         }
         AVFrame *f = duang->puller->frame;

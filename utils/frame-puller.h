@@ -18,6 +18,7 @@ typedef struct __frame_puller {
     AVCodecContext *codec_ctx;
     AVCodec *codec;
     int output_width, output_height;
+    enum AVPixelFormat pix_fmt;
 
     union {
         struct SwsContext *sws_ctx;
@@ -27,6 +28,11 @@ typedef struct __frame_puller {
     uint8_t *pict_buf;
     AVFrame *orig_frame;            /**< The last pulled frame. */
     AVFrame *frame;                 /**< The converted frame. */
+#define FRAME_PULLER_BUF_COUNT 8
+    // The reason we use buffered frames here
+    // is that the input is sorted by DTS instead of PTS.
+    // We'll sort them by PTS again. PTS's are often nearly sorted so we just buffer a few frames.
+    AVFrame *buffered_frame[FRAME_PULLER_BUF_COUNT];
     // The packet needn't be freed before reading the first packet.
     unsigned char first_packet;
     AVPacket packet;
@@ -58,7 +64,7 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_wi
 /**
  * Pull the next targeted frame (video / audio frame depending on the puller's type).
  * The output can be accessed by either the second parameter or fp->frame.
- * For videos, the frames are converted to RGB24 pixel format.
+ * For videos, the frames are converted to the pixel format set in frame_puller_open_video().
  *
  * @param[in]  fp      The frame_puller to use. Only the frames that match its type will be pulled.
  * @param[out] o_frame The pointer of the frame pulled. May be NULL.

@@ -58,6 +58,37 @@ int _frame_puller_init(frame_puller *fp, enum AVMediaType media_type)
     return 0;
 }
 
+// Internally-used function
+// Buffers FRAME_PULLER_BUF_COUNT frames to ensure monotonically increasing PTS for output.
+int _frame_puller_buffer_video(frame_puller *fp)
+{
+    if (fp->type != FRAME_PULLER_VIDEO) return 0;
+    int ret, frame_complete, i, j;
+    for (i = 0; i < FRAME_PULLER_BUF_COUNT; ++i) {
+        // TODO: Reduce code duplication
+    read_again:
+        while ((ret = av_read_frame(fp->fmt_ctx, &fp->packet)) >= 0
+            && fp->packet.stream_index != fp->target_stream_idx);
+        if (ret < 0) return ret;
+        avcodec_decode_video2(fp->codec_ctx, fp->orig_frame, &frame_complete, &fp->packet);
+        if (frame_complete) {
+            sws_scale(fp->libsw.sws_ctx,
+                (const uint8_t *const *)fp->orig_frame->data, fp->orig_frame->linesize,
+                0, fp->codec_ctx->height, fp->buffered_frame[i]->data, fp->buffered_frame[i]->linesize);
+            fp->buffered_frame[i]->pts = fp->packet.pts;
+        } else goto read_again;
+    }
+    int64_t t;
+    for (i = 0; i < FRAME_PULLER_BUF_COUNT - 1; ++i)
+        for (j = i + 1; j < FRAME_PULLER_BUF_COUNT; ++j)
+            if (fp->buffered_frame[i]->pts > fp->buffered_frame[j]->pts) {
+                t = fp->buffered_frame[i]->pts;
+                fp->buffered_frame[i]->pts = fp->buffered_frame[j]->pts;
+                fp->buffered_frame[j]->pts = t;
+            }
+    return 0;
+}
+
 int frame_puller_open_audio(frame_puller **o_fp, const char *path)
 {
     *o_fp = NULL;
@@ -102,25 +133,30 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
 int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, enum AVPixelFormat pix_fmt)
 {
     *o_fp = NULL;
-    int ret;
+    int ret, i;
     frame_puller *fp;
 
     if ((ret = _frame_puller_new(&fp, path)) < 0) return ret;
     fp->type = FRAME_PULLER_VIDEO;
     if ((ret = _frame_puller_init(fp, AVMEDIA_TYPE_VIDEO)) < 0) return ret;
     int width = fp->codec_ctx->width, height = fp->codec_ctx->height;
-    // Initialize the libswscale context for converting pictures to RGB format.
+    // Initialize the libswscale context for converting pixel formats.
     fp->pict_bufsize = avpicture_get_size(pix_fmt, width, height);
-    fp->pict_buf = (uint8_t *)av_malloc(fp->pict_bufsize);
     fp->frame = av_frame_alloc();
-    // > Assign the frame with the allocated buffer
-    avpicture_fill((AVPicture *)fp->frame, fp->pict_buf, pix_fmt, width, height);
+    fp->pix_fmt = pix_fmt;
     fp->output_width = output_width > 0 ? output_width : width;
     fp->output_height = output_height > 0 ? output_height : height;
     fp->libsw.sws_ctx = sws_getContext(
         width, height, fp->codec_ctx->pix_fmt,
         fp->output_width, fp->output_height, pix_fmt,
         SWS_BILINEAR, NULL, NULL, NULL);
+    // Allocate the buffer for frames
+    for (i = 0; i < FRAME_PULLER_BUF_COUNT; ++i) {
+        fp->buffered_frame[i] = av_frame_alloc();
+        fp->pict_buf = (uint8_t *)av_malloc(fp->pict_bufsize);
+        avpicture_fill((AVPicture *)fp->buffered_frame[i], fp->pict_buf, fp->pix_fmt, fp->output_width, fp->output_height);
+    }
+    if ((ret = _frame_puller_buffer_video(fp)) < 0) return ret;
 
     *o_fp = fp;
     return 0;
@@ -139,13 +175,24 @@ read_again:
     if (ret < 0) return ret;
     // Now we've found a wanted frame. Decode it.
     if (fp->type == FRAME_PULLER_VIDEO) {
+        // Pass the leftmost frame to output.
+        fp->frame = fp->buffered_frame[0];
+        o_frame && (*o_frame = fp->frame);
         avcodec_decode_video2(fp->codec_ctx, fp->orig_frame, &frame_complete, &fp->packet);
         if (frame_complete) {
             // Convert to RGB24 pixel format
             sws_scale(fp->libsw.sws_ctx,
                 (const uint8_t *const *)fp->orig_frame->data, fp->orig_frame->linesize,
-                0, fp->codec_ctx->height, fp->frame->data, fp->frame->linesize);
-            o_frame && (*o_frame = fp->frame);
+                0, fp->codec_ctx->height, fp->buffered_frame[0]->data, fp->buffered_frame[0]->linesize);
+            fp->buffered_frame[0]->pts = fp->packet.pts;
+            int i, j;
+            int64_t t;
+            for (i = 0; i < FRAME_PULLER_BUF_COUNT - 1; ++i)
+                if (fp->buffered_frame[i]->pts > fp->buffered_frame[i + 1]->pts) {
+                    t = fp->buffered_frame[i]->pts;
+                    fp->buffered_frame[i]->pts = fp->buffered_frame[i + 1]->pts;
+                    fp->buffered_frame[i + 1]->pts = t;
+                } else break;
         } else goto read_again;   // XXX: Can this possibly happen?
     } else if (fp->type == FRAME_PULLER_AUDIO) {
         avcodec_decode_audio4(fp->codec_ctx, fp->orig_frame, &frame_complete, &fp->packet);
@@ -171,6 +218,7 @@ int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
         av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking\n");
         return ret;
     }
+    _frame_puller_buffer_video(fp);
     if (precise) do {
         if ((ret = frame_puller_next_frame(fp, NULL)) < 0) {
             av_log(NULL, AV_LOG_ERROR, "Cannot seek precisely\n");
