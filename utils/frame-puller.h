@@ -33,6 +33,9 @@ typedef struct __frame_puller {
     // is that the input is sorted by DTS instead of PTS.
     // We'll sort them by PTS again. PTS's are often nearly sorted so we just buffer a few frames.
     AVFrame *buffered_frame[FRAME_PULLER_BUF_COUNT];
+    // Output samples = input samples * sample_scale_rate
+    double sample_scale_rate;
+    int output_sample_rate;
     // The packet needn't be freed before reading the first packet.
     unsigned char first_packet;
     AVPacket packet;
@@ -46,7 +49,7 @@ typedef struct __frame_puller {
  * @param[in]  path  The path of the video/audio file.
  * @return 0 if succeeded, a negative error code otherwise.
  */
-int frame_puller_open_audio(frame_puller **o_fp, const char *path);
+int frame_puller_open_audio(frame_puller **o_fp, const char *path, int output_sample_rate);
 
 /**
  * Create a new frame_puller struct with a given video file.

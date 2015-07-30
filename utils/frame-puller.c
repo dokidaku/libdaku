@@ -89,7 +89,7 @@ int _frame_puller_buffer_video(frame_puller *fp)
     return 0;
 }
 
-int frame_puller_open_audio(frame_puller **o_fp, const char *path)
+int frame_puller_open_audio(frame_puller **o_fp, const char *path, int output_sample_rate)
 {
     *o_fp = NULL;
     int ret;
@@ -98,15 +98,17 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
     if ((ret = _frame_puller_new(&fp, path)) < 0) return ret;
     fp->type = FRAME_PULLER_AUDIO;
     if ((ret = _frame_puller_init(fp, AVMEDIA_TYPE_AUDIO)) < 0) return ret;
+    fp->output_sample_rate = output_sample_rate > 0 ? output_sample_rate : fp->codec_ctx->sample_rate;
+    fp->sample_scale_rate = (double)fp->output_sample_rate / (double)fp->codec_ctx->sample_rate;
     // Initialize the libswresample context for audio resampling.
     // > Create the buffer for the converted frame to store data
     fp->frame = av_frame_alloc();
     fp->frame->format = AV_SAMPLE_FMT_S16P;
     fp->frame->channel_layout = fp->codec_ctx->channel_layout;
-    fp->frame->sample_rate = fp->codec_ctx->sample_rate;
+    fp->frame->sample_rate = fp->output_sample_rate;
     if ((fp->codec->capabilities & CODEC_CAP_VARIABLE_FRAME_SIZE) || !strcmp(fp->codec->name, "pcm_mulaw"))
         fp->frame->nb_samples = 4096;
-    else fp->frame->nb_samples = fp->codec_ctx->frame_size;
+    else fp->frame->nb_samples = fp->sample_scale_rate * fp->codec_ctx->frame_size;
     av_log(NULL, AV_LOG_INFO, "frame_puller: number of samples per frame = %d\n", fp->frame->nb_samples);
     if ((ret = av_frame_get_buffer(fp->frame, 0)) < 0) return ret;
     // > Create the SwrContext
@@ -120,7 +122,7 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path)
     av_opt_set_channel_layout(fp->libsw.swr_ctx, "in_channel_layout", fp->codec_ctx->channel_layout, 0);
     av_opt_set_channel_layout(fp->libsw.swr_ctx, "out_channel_layout", fp->codec_ctx->channel_layout, 0);
     av_opt_set_int(fp->libsw.swr_ctx, "in_sample_rate", fp->codec_ctx->sample_rate, 0);
-    av_opt_set_int(fp->libsw.swr_ctx, "out_sample_rate", fp->codec_ctx->sample_rate, 0);
+    av_opt_set_int(fp->libsw.swr_ctx, "out_sample_rate", fp->output_sample_rate, 0);
     av_opt_set_sample_fmt(fp->libsw.swr_ctx, "in_sample_fmt", fp->codec_ctx->sample_fmt, 0);
     av_opt_set_sample_fmt(fp->libsw.swr_ctx, "out_sample_fmt", AV_SAMPLE_FMT_S16P, 0);
     // > Fully initialize the SwrContext
@@ -199,7 +201,7 @@ read_again:
         if (frame_complete) {
             // Convert to signed 16-bit planar (S16P) format
             swr_convert(fp->libsw.swr_ctx,
-                fp->frame->data, fp->orig_frame->nb_samples,
+                fp->frame->data, (int)((double)fp->orig_frame->nb_samples * fp->sample_scale_rate),
                 (const uint8_t **)fp->orig_frame->data, fp->orig_frame->nb_samples);
             o_frame && (*o_frame = fp->frame);
         } else goto read_again;

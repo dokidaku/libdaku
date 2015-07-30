@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     int ret;
     frame_puller *fp;
-    if ((ret = frame_puller_open_audio(&fp, argv[1])) < 0) {
+    if ((ret = frame_puller_open_audio(&fp, argv[1], 0)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
         return ret;
     }

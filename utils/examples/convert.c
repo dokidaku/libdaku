@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 3) {
         printf("Video converting based on frame pullers & pushers\n");
-        printf("Usage: %s <input> <output> [<start_time> [<frame_rate> [<bit_rate>]]]\n", argv[0]);
+        printf("Usage: %s <input> <output> [<start_time> [<frame_rate> [<sample_rate> [<bit_rate>]]]]\n", argv[0]);
         printf("Reads a video and outputs it to another format.\n");
         return 1;
     }
@@ -19,10 +19,11 @@ int main(int argc, char *argv[])
 
     // Parse arguments
     float start_time = 0;
-    int frame_rate = 0, bit_rate = 0;
+    int frame_rate = 0, sample_rate = 0, bit_rate = 0;
     if (argc >= 4) start_time = atof(argv[3]);
     if (argc >= 5) frame_rate = atoi(argv[4]);
-    if (argc >= 6) bit_rate = atoi(argv[5]);
+    if (argc >= 6) sample_rate = atoi(argv[5]);
+    if (argc >= 7) bit_rate = atoi(argv[6]);
     if (frame_rate <= 0) frame_rate = 30;
     if (bit_rate < 0) bit_rate = 0; // Let the frame_pusher automatically fill this
 
@@ -32,12 +33,12 @@ int main(int argc, char *argv[])
         av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
         return ret;
     }
-    if ((ret = frame_puller_open_audio(&puller_a, argv[1])) < 0) {
+    if ((ret = frame_puller_open_audio(&puller_a, argv[1], sample_rate)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot read audio from input file\n");
         return ret;
     }
     frame_pusher *pusher;
-    if ((ret = frame_pusher_open(&pusher, argv[2], puller_a->codec_ctx->sample_rate, frame_rate,
+    if ((ret = frame_pusher_open(&pusher, argv[2], puller_a->output_sample_rate, frame_rate,
         puller_v->output_width, puller_v->output_height, bit_rate)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "Cannot initialize the output file\n");
