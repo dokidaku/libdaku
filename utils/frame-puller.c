@@ -132,7 +132,8 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path, int output_sa
     return 0;
 }
 
-int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height, enum AVPixelFormat pix_fmt)
+int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_width, int output_height,
+    enum AVPixelFormat pix_fmt, unsigned char is_static)
 {
     *o_fp = NULL;
     int ret, i;
@@ -158,7 +159,7 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_wi
         fp->pict_buf = (uint8_t *)av_malloc(fp->pict_bufsize);
         avpicture_fill((AVPicture *)fp->buffered_frame[i], fp->pict_buf, fp->pix_fmt, fp->output_width, fp->output_height);
     }
-    if ((ret = _frame_puller_buffer_video(fp)) < 0) return ret;
+    if (!is_static && (ret = _frame_puller_buffer_video(fp)) < 0) return ret;
 
     *o_fp = fp;
     return 0;

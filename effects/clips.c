@@ -80,7 +80,7 @@ int _daku_video_clip_init(daku_action *action)
 {
     struct __daku_video_clip *ret = (struct __daku_video_clip *)action;
     int width = action->target->pict_width, height = action->target->pict_height;
-    if (frame_puller_open_video(&ret->puller, ret->path, width, height, PIX_FMT_RGB48) < 0) return -4;
+    if (frame_puller_open_video(&ret->puller, ret->path, width, height, PIX_FMT_RGB48, 0) < 0) return -4;
     if (frame_puller_seek(ret->puller, ret->start_time, ret->reversed ? 0 : 1) < 0) return -6;
     AVRational *tb = &ret->puller->fmt_ctx->streams[ret->puller->target_stream_idx]->time_base;
     ret->time_base = (double)tb->den / (double)tb->num;
@@ -128,7 +128,7 @@ int _daku_image_clip_init(daku_action *action)
 {
     struct __daku_image_clip *ret = (struct __daku_image_clip *)action;
     int width = action->target->pict_width, height = action->target->pict_height;
-    if (frame_puller_open_video(&ret->puller, ret->path, width, height, PIX_FMT_RGBA64) < 0) return -4;
+    if (frame_puller_open_video(&ret->puller, ret->path, width, height, PIX_FMT_RGBA64, 1) < 0) return -4;
     ret->img_width = ret->puller->output_width;
     ret->img_height = ret->puller->output_height;
     if (frame_puller_next_frame(ret->puller, NULL) < 0) return -6;
