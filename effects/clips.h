@@ -6,6 +6,7 @@
 // videoclip.c
 daku_action *daku_video_clip(const char *path, float start_time, float duration);
 daku_action *daku_image_clip(float duration, const char *path);
+daku_instrument *daku_audio_clip(const char *path, float start_time, float duration);
 
 enum daku_text_h_align {
     DAKU_HALIGN_LEFT,

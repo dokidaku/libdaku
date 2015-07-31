@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
     av_register_all();
     daku_world *world = daku_world_create(600, 600, 15);
     daku_matter *m;
+    daku_wave *w;
 
     m = daku_matter_create();
     daku_matter_setlife(m, 7);
@@ -38,11 +39,16 @@ int main(int argc, char *argv[])
     daku_matter_setlife(m, 5);
     daku_matter_setsize(m, 300, 200);
     daku_matter_setpos(m, 300, 300);
-    daku_matter_act(m, 0, daku_video_clip("xx.mp4", 8, -5));
+    daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
     m->flipped_y = 1;
     m->flipped_x = 1;
     daku_world_populate(world, m, 0);
+
+    w = daku_wave_create();
+    daku_wave_setlife(w, 5);
+    daku_wave_play(w, 0, daku_audio_clip("xx.mp4", 3, 5));
+    daku_world_clang(world, w, 0);
 
     m = daku_matter_create();
     daku_matter_setlife(m, 5);

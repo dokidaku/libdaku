@@ -220,13 +220,15 @@ int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
         av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking\n");
         return ret;
     }
-    _frame_puller_buffer_video(fp);
-    if (precise) do {
-        if ((ret = frame_puller_next_frame(fp, NULL)) < 0) {
-            av_log(NULL, AV_LOG_ERROR, "Cannot seek precisely\n");
-            return ret;
-        }
-    } while (fp->packet.pts < timestamp);
+    if (fp->type == FRAME_PULLER_VIDEO) {
+        _frame_puller_buffer_video(fp);
+        if (precise) do {
+            if ((ret = frame_puller_next_frame(fp, NULL)) < 0) {
+                av_log(NULL, AV_LOG_ERROR, "Cannot seek precisely\n");
+                return ret;
+            }
+        } while (fp->packet.pts < timestamp);
+    }
     return 0;
 }
 

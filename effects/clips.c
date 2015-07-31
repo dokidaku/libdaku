@@ -150,6 +150,44 @@ daku_action *daku_image_clip(float duration, const char *path)
     return (daku_action *)ret;
 }
 
+struct __daku_audio_clip {
+    daku_instrument base;
+    const char *path;
+    frame_puller *puller;
+    float start_time;
+    unsigned char is_mono;
+    //unsigned char reversed;
+};
+void _daku_audio_clip_update(daku_instrument *instrument, int sample_idx)
+{
+    struct __daku_audio_clip *ding = (struct __daku_audio_clip *)instrument;
+    if (frame_puller_next_frame(ding->puller, NULL) >= 0) {
+        instrument->target->data_len = ding->puller->frame->nb_samples;
+        instrument->target->waveform_data[0] = (int16_t *)(ding->puller->frame->data[0] + 1);
+        instrument->target->waveform_data[1] = (int16_t *)(ding->puller->frame->data[ding->is_mono ? 0 : 1] + 1);
+    }
+    instrument->target->data_ptr = 0;
+}
+int _daku_audio_clip_init(daku_instrument *instrument)
+{
+    struct __daku_audio_clip *ret = (struct __daku_audio_clip *)instrument;
+    if (frame_puller_open_audio(&ret->puller, ret->path, instrument->target->sample_rate) < 0) return -4;
+    if (frame_puller_seek(ret->puller, ret->start_time, 1) < 0) return -6;
+    ret->is_mono = (ret->puller->codec_ctx->channels < 2);
+    return 0;
+}
+daku_instrument *daku_audio_clip(const char *path, float start_time, float duration)
+{
+    struct __daku_audio_clip *ret =
+        (struct __daku_audio_clip *)malloc(sizeof(struct __daku_audio_clip));
+    ret->base.duration = duration;
+    ret->base.init = &_daku_audio_clip_init;
+    ret->base.update = &_daku_audio_clip_update;
+    ret->path = path;
+    ret->start_time = start_time;
+    return (daku_instrument *)ret;
+}
+
 struct __daku_text_clip {
     daku_action base;
     int text_len;
@@ -159,7 +197,6 @@ struct __daku_text_clip {
     uint16_t r, g, b;
     FT_Library ft_lib;
     FT_Face ft_face;
-    unsigned char *bmp_buffer;
     unsigned char *line_buffer;
 };
 void _daku_text_clip_update(daku_action *action, float progress)
@@ -169,7 +206,8 @@ void _daku_text_clip_update(daku_action *action, float progress)
     int max_line_w = 0;
     int w = action->target->pict_width, h = action->target->pict_height;
     FT_Bitmap bitmap;
-    bitmap.buffer = duang->bmp_buffer;
+    bitmap.buffer =
+        (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     memset(duang->line_buffer, 0, w * h * 2);
 
     pen_y = -duang->line_height;    // Padding to prevent the last line from being cut
@@ -267,8 +305,6 @@ void _daku_text_clip_update(daku_action *action, float progress)
 int _daku_text_clip_init(daku_action *action)
 {
     // Conservatively allocate twice as much as needed.
-    ((struct __daku_text_clip *)action)->bmp_buffer =
-        (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     ((struct __daku_text_clip *)action)->line_buffer =
         (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     return 0;
@@ -305,6 +341,5 @@ daku_action *daku_text(float duration, const char *text,
         av_log(NULL, AV_LOG_ERROR, "Invalid font size, perhaps?\n");
         return NULL;
     }
-    ret->bmp_buffer = NULL;
     return (daku_action *)ret;
 }

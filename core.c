@@ -18,7 +18,6 @@ daku_matter *daku_matter_create()
     ret->actions = daku_list_create(NULL);
     return ret;
 }
-
 void daku_matter_setlife(daku_matter *m, float life_time)
 {
     m->life_time = life_time;
@@ -55,13 +54,33 @@ void daku_matter_init(daku_matter *m)
     m->picture = (uint16_t *)malloc(m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
 }
 
+daku_wave *daku_wave_create()
+{
+    daku_wave *ret = (daku_wave *)malloc(sizeof(daku_wave));
+    ret->data_len = ret->data_ptr = ret->sample_rate = 0;
+    ret->instruments = daku_list_create(NULL);
+    return ret;
+}
+void daku_wave_setlife(daku_wave *w, float life_time)
+{
+    w->life_time = life_time;
+}
+void daku_wave_play(daku_wave *w, float start_time, daku_instrument *instrument)
+{
+    instrument->start_time = start_time;
+    instrument->target = w;
+    daku_list_push_back(w->instruments, instrument);
+}
+
 daku_world *daku_world_create(int width, int height, float duration)
 {
     daku_world *ret = (daku_world *)malloc(sizeof(daku_world));
     ret->width = width; ret->height = height;
     ret->fps = 30;
+    ret->sample_rate = 11025;
     ret->duration = duration;
     ret->population = daku_list_create(NULL);
+    ret->clangs = daku_list_create(NULL);
     return ret;
 }
 
@@ -69,6 +88,12 @@ void daku_world_populate(daku_world *world, daku_matter *resident, float start_t
 {
     resident->start_time = start_time;
     daku_list_push_back(world->population, resident);
+}
+void daku_world_clang(daku_world *world, daku_wave *duangduang, float start_time)
+{
+    duangduang->start_time = start_time;
+    duangduang->sample_rate = world->sample_rate;
+    daku_list_push_back(world->clangs, duangduang);
 }
 
 void __save_frame_ppm(const uint8_t *rgb_data, int width, int height, int linesize, const char *path)
@@ -83,12 +108,13 @@ void __save_frame_ppm(const uint8_t *rgb_data, int width, int height, int linesi
 }
 
 #define MIN(__a, __b) ((__a) < (__b) ? (__a) : (__b))
+#define MAX(__a, __b) ((__a) > (__b) ? (__a) : (__b))
 void daku_world_write(daku_world *world, const char *path)
 {
     clock_t start_time = clock();
 
     frame_pusher *pusher;
-    if (frame_pusher_open(&pusher, path, 44100, world->fps, world->width, world->height, 800000) < 0) return;
+    if (frame_pusher_open(&pusher, path, world->sample_rate, world->fps, world->width, world->height, 800000) < 0) return;
     unsigned int line_size = world->width * 3 * sizeof(uint8_t);
     if (line_size % 64) line_size += (64 - line_size % 64); // Will this work...?
     unsigned int buf_size = line_size * world->height;
@@ -97,9 +123,20 @@ void daku_world_write(daku_world *world, const char *path)
     uint8_t *pusher_pict[4] = { pict };
     // The buffer size needs to be multiplied by 3 because the format is RGB24
     int pusher_linesize[4] = { line_size };
+    // The buffer for one second of sound.
+    int16_t *waveform[2] = { (int16_t *)malloc(world->sample_rate * 2), (int16_t *)malloc(world->sample_rate * 2) };
 
     daku_matter *m;
     daku_action *ac;
+    daku_wave *wv;
+    daku_instrument *inst;
+    // Initialize all waves and instruments first, for they don't need any extra data.
+    daku_list_foreach_t(world->clangs, daku_wave *, wv) if (wv) {
+        daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
+            if (inst->init) inst->init(inst);
+            inst->update(inst, 0);
+        }
+    }
     daku_list_foreach_t(world->population, daku_matter *, m) if (m) {
         daku_matter_init(m);
         printf("RESIDENT 0x%x\n", (int)m);
@@ -113,65 +150,93 @@ void daku_world_write(daku_world *world, const char *path)
     float cur_time;
     int x0, y0, x1, y1, x, y, w, h;
     uint16_t alpha;
-    for (frame_num = 0; frame_num < world->duration * world->fps; ++frame_num) {
-        // Render one frame.
-        memset(ipict, 0, buf_size * 2);
-        cur_time = (float)frame_num / (float)world->fps;
-        daku_list_foreach_t(world->population, daku_matter *, m)
-            if (m && m->start_time <= cur_time
-                && m->start_time + m->life_time >= cur_time)
-            {
-                daku_list_foreach_t(m->actions, daku_action *, ac)
-                    if (ac && m->start_time + ac->start_time <= cur_time
-                        && m->start_time + ac->start_time + ac->duration >= cur_time)
-                    {
-                        if (!ac->initialized) {
-                            ac->initialized = 1;
-                            if (ac->init) ac->init(ac);
+    int seconds;
+    int frames_in_sec;
+    for (seconds = 0; seconds < world->duration; ++seconds) {
+        frames_in_sec = (world->duration - seconds >= 1) ? world->fps : (world->duration - seconds) * world->fps;
+        for (frame_num = 0; frame_num < frames_in_sec; ++frame_num) {
+            // Render one frame.
+            memset(ipict, 0, buf_size * 2);
+            cur_time = seconds + (float)frame_num / (float)world->fps;
+            daku_list_foreach_t(world->population, daku_matter *, m)
+                if (m && m->start_time <= cur_time
+                    && m->start_time + m->life_time >= cur_time)
+                {
+                    daku_list_foreach_t(m->actions, daku_action *, ac)
+                        if (ac && m->start_time + ac->start_time <= cur_time
+                            && m->start_time + ac->start_time + ac->duration >= cur_time)
+                        {
+                            if (!ac->initialized) {
+                                ac->initialized = 1;
+                                if (ac->init) ac->init(ac);
+                            }
+                            ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
                         }
-                        ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
+                    x0 = m->x - m->anchor_x * m->content_width - m->content_start_x;
+                    y0 = m->y - m->anchor_y * m->content_height - m->content_start_y;
+                    w = MIN(m->pict_width, world->width - x0);
+                    h = MIN(m->pict_height, world->height - y0);
+                    x1 = x0 < 0 ? -x0 : 0;
+                    y1 = y0 < 0 ? -y0 : 0;
+            #define ALPHA_MIX(__orig, __new) \
+                (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
+            #define COPY_PICT(__fx, __fy) do { \
+                    for (y = y1; y < h; ++y) \
+                        for (x = x1; x < w; ++x) { \
+                            alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3] * m->opacity / 65535; \
+                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
+                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
+                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
+                        } \
+                    } while (0)
+                    // XXX: Will the compiler detect unchanged values (__fx and__fy) in loops and optimize?
+                    // We won't need these macros if so.
+                    if (m->flipped_y) {
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, m->pict_height - y - 1);
+                        else COPY_PICT(x, m->pict_height - y - 1);
+                    } else {
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, y);
+                        else COPY_PICT(x, y);
                     }
-                x0 = m->x - m->anchor_x * m->content_width - m->content_start_x;
-                y0 = m->y - m->anchor_y * m->content_height - m->content_start_y;
-                w = MIN(m->pict_width, world->width - x0);
-                h = MIN(m->pict_height, world->height - y0);
-                x1 = x0 < 0 ? -x0 : 0;
-                y1 = y0 < 0 ? -y0 : 0;
-        #define ALPHA_MIX(__orig, __new) \
-            (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
-        #define COPY_PICT(__fx, __fy) do { \
-                for (y = y1; y < h; ++y) \
-                    for (x = x1; x < w; ++x) { \
-                        alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3] * m->opacity / 65535; \
-                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
-                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
-                        ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
-                    } \
-                } while (0)
-                // XXX: Will the compiler detect unchanged values (__fx and__fy) in loops and optimize?
-                // We won't need these macros if so.
-                if (m->flipped_y) {
-                    if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, m->pict_height - y - 1);
-                    else COPY_PICT(x, m->pict_height - y - 1);
-                } else {
-                    if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, y);
-                    else COPY_PICT(x, y);
+            #undef COPY_PICT
+            #undef ALPHA_MIX
                 }
-        #undef COPY_PICT
-        #undef ALPHA_MIX
+            // Save.
+            // TODO: Directly use RGB48 format in frame pushers.
+            for (y = 0; y < world->height; ++y)
+                for (x = 0; x < world->width; ++x) {
+                    pict[y * line_size + x * 3 + 0] = ipict[(y * world->width + x) * 3 + 0] >> 8;
+                    pict[y * line_size + x * 3 + 1] = ipict[(y * world->width + x) * 3 + 1] >> 8;
+                    pict[y * line_size + x * 3 + 2] = ipict[(y * world->width + x) * 3 + 2] >> 8;
+                }
+            frame_pusher_write_video(pusher, pusher_pict, pusher_linesize, 1);
+        }
+        // Audio part
+        // 'frames' means 'samples' from now on
+        frames_in_sec = (world->duration - seconds >= 1) ? world->sample_rate : (world->duration - seconds) * world->sample_rate;
+        memset(waveform[0], 0, world->sample_rate * 2);
+        memset(waveform[1], 0, world->sample_rate * 2);
+        daku_list_foreach_t(world->clangs, daku_wave *, wv) if (wv) {
+            x = MAX(wv->start_time, seconds);
+            y = MIN(wv->start_time + wv->life_time, seconds + 1);
+            for (frame_num = x * world->sample_rate; frame_num < y * world->sample_rate; ++frame_num) {
+                waveform[0][frame_num - seconds * world->sample_rate] += wv->waveform_data[0][wv->data_ptr];
+                waveform[1][frame_num - seconds * world->sample_rate] += wv->waveform_data[1][wv->data_ptr];
+                if (++wv->data_ptr == wv->data_len) {
+                    // We've used up the entire buffer. Refresh.
+                    daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
+                        inst->update(inst, frame_num + 1);
+                    }
+                }
             }
-        // Save.
-        // TODO: Directly use RGB48 format in frame pushers.
-        for (y = 0; y < world->height; ++y)
-            for (x = 0; x < world->width; ++x) {
-                pict[y * line_size + x * 3 + 0] = ipict[(y * world->width + x) * 3 + 0] >> 8;
-                pict[y * line_size + x * 3 + 1] = ipict[(y * world->width + x) * 3 + 1] >> 8;
-                pict[y * line_size + x * 3 + 2] = ipict[(y * world->width + x) * 3 + 2] >> 8;
-            }
-        frame_pusher_write_video(pusher, pusher_pict, pusher_linesize, 1);
+        }
+        for (frame_num = 0; frame_num < frames_in_sec; ++frame_num) {
+            frame_pusher_write_audio(pusher, waveform[0][frame_num], waveform[1][frame_num]);
+        }
     }
     frame_pusher_close(pusher);
     printf("Video time: %f s\n", world->duration);
     printf("Execution time: %f s\n", (float)(clock() - start_time) / CLOCKS_PER_SEC);
 }
 #undef MIN
+#undef MAX
