@@ -156,7 +156,6 @@ struct __daku_audio_clip {
     float clip_start_time;
     unsigned char is_mono;
 };
-#define TARGET_WAVEFORM instrument->target->waveform_data
 int _daku_audio_clip_init(daku_instrument *instrument)
 {
     struct __daku_audio_clip *ret = (struct __daku_audio_clip *)instrument;
@@ -170,27 +169,26 @@ int _daku_audio_clip_init(daku_instrument *instrument)
     if (frame_puller_seek(puller, ret->clip_start_time, 1) < 0) return -6;
     finish_timestamp = (ret->clip_start_time + instrument->duration) * time_base;
     // Copy all data to the buffer
-    int i, j = instrument->start_time * instrument->target->sample_rate;
+    int i, j = 0;
     frame_puller_next_frame(puller, NULL);
     for (i = (ret->clip_start_time - puller->packet.pts / time_base) * instrument->target->sample_rate;
         i < puller->frame->nb_samples; ++i, ++j)
     {
-        TARGET_WAVEFORM[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
-        TARGET_WAVEFORM[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
+        instrument->target_data[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
+        instrument->target_data[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
     }
     frame_puller_next_frame(puller, NULL);
     while (puller->packet.pts < finish_timestamp) {
         for (i = 0; i < FFMIN(puller->frame->nb_samples,
             (finish_timestamp - puller->packet.pts) / time_base * instrument->target->sample_rate); ++i, ++j)
         {
-            TARGET_WAVEFORM[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
-            TARGET_WAVEFORM[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
+            instrument->target_data[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
+            instrument->target_data[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
         }
         frame_puller_next_frame(puller, NULL);
     }
     return 0;
 }
-#undef TARGET_WAVEFORM
 daku_instrument *daku_audio_clip(const char *path, float start_time, float duration)
 {
     struct __daku_audio_clip *ret =

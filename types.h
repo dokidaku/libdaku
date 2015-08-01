@@ -51,6 +51,8 @@ typedef int (*daku_instrument_init_func)
 typedef struct __daku_instrument {
     struct __daku_wave *target;
     float start_time, duration;
+    int16_t *target_data[2];
+    int samples_affected;
     daku_instrument_init_func init;
 } daku_instrument;
 

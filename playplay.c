@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     }
     av_register_all();
     daku_world *world = daku_world_create(600, 600, 15);
+    world->sample_rate = 44100;
     daku_matter *m;
     daku_wave *w;
 
@@ -46,8 +47,9 @@ int main(int argc, char *argv[])
     daku_world_populate(world, m, 0);
 
     w = daku_wave_create();
-    daku_wave_setlife(w, 5);
-    daku_wave_play(w, 0, daku_audio_clip("xx.mp4", 3, 5));
+    daku_wave_setlife(w, 15);
+    daku_wave_play(w, 0, daku_audio_clip("xx.mp3", 208, 15));
+    daku_wave_play(w, 0, daku_audio_reverse(15));
     daku_world_clang(world, w, 0);
 
     m = daku_matter_create();
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
     daku_matter_setpos(m, 100, 500);
     daku_matter_act(m, 0, daku_image_clip(5, "xx.png"));
     m->flipped_x = 1;
-    daku_world_populate(world, m, 0);
+    daku_world_populate(world, m, 1);
 
     m = daku_matter_create();
     daku_matter_setlife(m, 4);

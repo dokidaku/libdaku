@@ -157,6 +157,9 @@ void daku_world_write(daku_world *world, const char *path)
         wv->waveform_data[0] = (int16_t *)malloc(wv->data_len * sizeof(int16_t));
         wv->waveform_data[1] = (int16_t *)malloc(wv->data_len * sizeof(int16_t));
         daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
+            inst->target_data[0] = wv->waveform_data[0] + (int)(inst->start_time * world->sample_rate);
+            inst->target_data[1] = wv->waveform_data[1] + (int)(inst->start_time * world->sample_rate);
+            inst->samples_affected = inst->duration * world->sample_rate;
             inst->init(inst);
         }
         y = wv->start_time * world->sample_rate;
