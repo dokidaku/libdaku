@@ -87,6 +87,7 @@ int frame_puller_next_frame(frame_puller *fp, AVFrame **o_frame);
  * @return 0 if succeeded, a negative error code otherwise.
  */
 int frame_puller_seek(frame_puller *fp, float time, unsigned char precise);
+int frame_puller_seek_timestamp(frame_puller *fp, int64_t timestamp, unsigned char precise);
 
 /**
  * Free a frame_puller struct and all resources it used.

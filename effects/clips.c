@@ -153,38 +153,52 @@ daku_action *daku_image_clip(float duration, const char *path)
 struct __daku_audio_clip {
     daku_instrument base;
     const char *path;
-    frame_puller *puller;
-    float start_time;
+    float clip_start_time;
     unsigned char is_mono;
-    //unsigned char reversed;
 };
-void _daku_audio_clip_update(daku_instrument *instrument, int sample_idx)
-{
-    struct __daku_audio_clip *ding = (struct __daku_audio_clip *)instrument;
-    if (frame_puller_next_frame(ding->puller, NULL) >= 0) {
-        instrument->target->data_len = ding->puller->frame->nb_samples;
-        instrument->target->waveform_data[0] = (int16_t *)(ding->puller->frame->data[0] + 1);
-        instrument->target->waveform_data[1] = (int16_t *)(ding->puller->frame->data[ding->is_mono ? 0 : 1] + 1);
-    }
-    instrument->target->data_ptr = 0;
-}
+#define TARGET_WAVEFORM instrument->target->waveform_data
 int _daku_audio_clip_init(daku_instrument *instrument)
 {
     struct __daku_audio_clip *ret = (struct __daku_audio_clip *)instrument;
-    if (frame_puller_open_audio(&ret->puller, ret->path, instrument->target->sample_rate) < 0) return -4;
-    if (frame_puller_seek(ret->puller, ret->start_time, 1) < 0) return -6;
-    ret->is_mono = (ret->puller->codec_ctx->channels < 2);
+    frame_puller *puller;
+    if (frame_puller_open_audio(&puller, ret->path, instrument->target->sample_rate) < 0) return -4;
+    ret->is_mono = (puller->codec_ctx->channels < 2);
+    // Seek
+    int64_t finish_timestamp;
+    AVRational *tb = &puller->fmt_ctx->streams[puller->target_stream_idx]->time_base;
+    double time_base = (double)tb->den / (double)tb->num;
+    if (frame_puller_seek(puller, ret->clip_start_time, 1) < 0) return -6;
+    finish_timestamp = (ret->clip_start_time + instrument->duration) * time_base;
+    // Copy all data to the buffer
+    int i, j = instrument->start_time * instrument->target->sample_rate;
+    frame_puller_next_frame(puller, NULL);
+    for (i = (ret->clip_start_time - puller->packet.pts / time_base) * instrument->target->sample_rate;
+        i < puller->frame->nb_samples; ++i, ++j)
+    {
+        TARGET_WAVEFORM[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
+        TARGET_WAVEFORM[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
+    }
+    frame_puller_next_frame(puller, NULL);
+    while (puller->packet.pts < finish_timestamp) {
+        for (i = 0; i < FFMIN(puller->frame->nb_samples,
+            (finish_timestamp - puller->packet.pts) / time_base * instrument->target->sample_rate); ++i, ++j)
+        {
+            TARGET_WAVEFORM[0][j] += *(int16_t *)&puller->frame->data[0][i + i + 1];
+            TARGET_WAVEFORM[1][j] += *(int16_t *)&puller->frame->data[ret->is_mono ? 0 : 1][i + i + 1];
+        }
+        frame_puller_next_frame(puller, NULL);
+    }
     return 0;
 }
+#undef TARGET_WAVEFORM
 daku_instrument *daku_audio_clip(const char *path, float start_time, float duration)
 {
     struct __daku_audio_clip *ret =
         (struct __daku_audio_clip *)malloc(sizeof(struct __daku_audio_clip));
     ret->base.duration = duration;
     ret->base.init = &_daku_audio_clip_init;
-    ret->base.update = &_daku_audio_clip_update;
     ret->path = path;
-    ret->start_time = start_time;
+    ret->clip_start_time = start_time;
     return (daku_instrument *)ret;
 }
 

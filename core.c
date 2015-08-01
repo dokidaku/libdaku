@@ -57,7 +57,7 @@ void daku_matter_init(daku_matter *m)
 daku_wave *daku_wave_create()
 {
     daku_wave *ret = (daku_wave *)malloc(sizeof(daku_wave));
-    ret->data_len = ret->data_ptr = ret->sample_rate = 0;
+    ret->data_len = ret->sample_rate = 0;
     ret->instruments = daku_list_create(NULL);
     return ret;
 }
@@ -124,19 +124,18 @@ void daku_world_write(daku_world *world, const char *path)
     // The buffer size needs to be multiplied by 3 because the format is RGB24
     int pusher_linesize[4] = { line_size };
     // The buffer for one second of sound.
-    int16_t *waveform[2] = { (int16_t *)malloc(world->sample_rate * 2), (int16_t *)malloc(world->sample_rate * 2) };
+    int waveform_len = world->sample_rate * world->duration;
+    int16_t *waveform[2] = {
+        (int16_t *)malloc(waveform_len * sizeof(int16_t)),
+        (int16_t *)malloc(waveform_len * sizeof(int16_t))
+    };
+    memset(waveform[0], 0, waveform_len * sizeof(int16_t));
+    memset(waveform[1], 0, waveform_len * sizeof(int16_t));
 
     daku_matter *m;
     daku_action *ac;
     daku_wave *wv;
     daku_instrument *inst;
-    // Initialize all waves and instruments first, for they don't need any extra data.
-    daku_list_foreach_t(world->clangs, daku_wave *, wv) if (wv) {
-        daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
-            if (inst->init) inst->init(inst);
-            inst->update(inst, 0);
-        }
-    }
     daku_list_foreach_t(world->population, daku_matter *, m) if (m) {
         daku_matter_init(m);
         printf("RESIDENT 0x%x\n", (int)m);
@@ -152,6 +151,21 @@ void daku_world_write(daku_world *world, const char *path)
     uint16_t alpha;
     int seconds;
     int frames_in_sec;
+    // Initialize all waves and instruments first, for they don't need any extra data.
+    daku_list_foreach_t(world->clangs, daku_wave *, wv) if (wv) {
+        wv->data_len = world->sample_rate * wv->life_time;
+        wv->waveform_data[0] = (int16_t *)malloc(wv->data_len * sizeof(int16_t));
+        wv->waveform_data[1] = (int16_t *)malloc(wv->data_len * sizeof(int16_t));
+        daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
+            inst->init(inst);
+        }
+        y = wv->start_time * world->sample_rate;
+        for (x = 0; x < MIN(wv->data_len, waveform_len - y - 1); ++x) {
+            waveform[0][x + y] += wv->waveform_data[0][x];
+            waveform[1][x + y] += wv->waveform_data[1][x];
+        }
+    }
+    // Generate picture frames one by one.
     for (seconds = 0; seconds < world->duration; ++seconds) {
         frames_in_sec = (world->duration - seconds >= 1) ? world->fps : (world->duration - seconds) * world->fps;
         for (frame_num = 0; frame_num < frames_in_sec; ++frame_num) {
@@ -212,25 +226,8 @@ void daku_world_write(daku_world *world, const char *path)
             frame_pusher_write_video(pusher, pusher_pict, pusher_linesize, 1);
         }
         // Audio part
-        // 'frames' means 'samples' from now on
-        frames_in_sec = (world->duration - seconds >= 1) ? world->sample_rate : (world->duration - seconds) * world->sample_rate;
-        memset(waveform[0], 0, world->sample_rate * 2);
-        memset(waveform[1], 0, world->sample_rate * 2);
-        daku_list_foreach_t(world->clangs, daku_wave *, wv) if (wv) {
-            x = MAX(wv->start_time, seconds);
-            y = MIN(wv->start_time + wv->life_time, seconds + 1);
-            for (frame_num = x * world->sample_rate; frame_num < y * world->sample_rate; ++frame_num) {
-                waveform[0][frame_num - seconds * world->sample_rate] += wv->waveform_data[0][wv->data_ptr];
-                waveform[1][frame_num - seconds * world->sample_rate] += wv->waveform_data[1][wv->data_ptr];
-                if (++wv->data_ptr == wv->data_len) {
-                    // We've used up the entire buffer. Refresh.
-                    daku_list_foreach_t(wv->instruments, daku_instrument *, inst) if (inst) {
-                        inst->update(inst, frame_num + 1);
-                    }
-                }
-            }
-        }
-        for (frame_num = 0; frame_num < frames_in_sec; ++frame_num) {
+        x = MIN(world->sample_rate * (seconds + 1), waveform_len);
+        for (frame_num = world->sample_rate * seconds; frame_num < x; ++frame_num) {
             frame_pusher_write_audio(pusher, waveform[0][frame_num], waveform[1][frame_num]);
         }
     }

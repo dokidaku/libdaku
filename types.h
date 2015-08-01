@@ -39,7 +39,7 @@ typedef struct __daku_action {
 // Audio part
 typedef struct __daku_wave {
     float start_time, life_time;
-    int last_sample_idx, data_len, data_ptr;
+    int data_len;
     int sample_rate;
     int16_t *waveform_data[2];
     daku_list/* struct __daku_instrument */ *instruments;
@@ -47,14 +47,11 @@ typedef struct __daku_wave {
 
 typedef int (*daku_instrument_init_func)
     (struct __daku_instrument *wave);
-typedef void (*daku_instrument_update_func)
-    (struct __daku_instrument *wave, int sample_idx);
 
 typedef struct __daku_instrument {
     struct __daku_wave *target;
     float start_time, duration;
     daku_instrument_init_func init;
-    daku_instrument_update_func update;
 } daku_instrument;
 
 // World part

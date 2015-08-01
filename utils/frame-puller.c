@@ -211,14 +211,12 @@ read_again:
     return 0;
 }
 
-int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
+int frame_puller_seek_timestamp(frame_puller *fp, int64_t timestamp, unsigned char precise)
 {
-    if (time < 0) time = 0;
+    if (timestamp < 0) timestamp = 0;
     int ret;
-    AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
-    int64_t timestamp = (int64_t)(time * (float)tb->den / (float)tb->num);
     if ((ret = av_seek_frame(fp->fmt_ctx, fp->target_stream_idx, timestamp, AVSEEK_FLAG_BACKWARD)) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking\n");
+        av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking: %s\n", av_err2str(ret));
         return ret;
     }
     if (fp->type == FRAME_PULLER_VIDEO) {
@@ -231,6 +229,12 @@ int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
         } while (fp->packet.pts < timestamp);
     }
     return 0;
+}
+
+int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
+{
+    AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
+    return frame_puller_seek_timestamp(fp, (int64_t)(time * (float)tb->den / (float)tb->num), precise);
 }
 
 void frame_puller_free(frame_puller *fp)
