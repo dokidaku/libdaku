@@ -16,7 +16,7 @@ typedef struct __daku_matter {
     float content_start_x, content_start_y;
     float pict_width, pict_height;
     float anchor_x, anchor_y;
-    float x, y, rotation;
+    float x, y, rotation, scale;
     uint16_t opacity;
     unsigned char flipped_x, flipped_y;
     uint16_t *picture;

@@ -11,6 +11,8 @@ daku_action *daku_fx_fadeto(float duration, uint8_t opacity);
 daku_action *daku_fx_fadein(float duration);
 daku_action *daku_fx_fadeout(float duration);
 
+daku_action *daku_fx_scaleto(float duration, float scale);
+
 // duang_audio.c
 daku_instrument *daku_audio_reverse(float duration);
 

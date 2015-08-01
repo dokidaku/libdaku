@@ -76,3 +76,30 @@ daku_action *daku_fx_fadeout(float duration)
 {
     return daku_fx_fadeto(duration, 0);
 }
+
+struct __daku_fx_scale {
+    daku_action base;
+    float start_scale, end_scale;
+};
+void _daku_fx_scaleto_update(daku_action *action, float progress)
+{
+    struct __daku_fx_scale *duang = (struct __daku_fx_scale *)action;
+    action->target->scale = duang->start_scale * (1 - progress) + duang->end_scale * progress;
+}
+int _daku_fx_scaleto_init(daku_action *action)
+{
+    struct __daku_fx_scale *ret = (struct __daku_fx_scale *)action;
+    ret->start_scale = action->target->scale;
+    return 0;
+}
+daku_action *daku_fx_scaleto(float duration, float scale)
+{
+    struct __daku_fx_scale *ret =
+        (struct __daku_fx_scale *)malloc(sizeof(struct __daku_fx_scale));
+    ret->base.duration = duration;
+    ret->base.initialized = 0;
+    ret->base.init = &_daku_fx_scaleto_init;
+    ret->base.update = &_daku_fx_scaleto_update;
+    ret->end_scale = scale;
+    return (daku_action *)ret;
+}
