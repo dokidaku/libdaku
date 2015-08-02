@@ -193,8 +193,8 @@ void daku_world_write(daku_world *world, const char *path)
                             }
                             ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
                         }
-                    x0 = m->x - m->anchor_x * m->content_width - m->content_start_x;
-                    y0 = m->y - m->anchor_y * m->content_height - m->content_start_y;
+                    x0 = m->x - (m->anchor_x * m->content_width - m->content_start_x) * m->scale;
+                    y0 = m->y - (m->anchor_y * m->content_height - m->content_start_y) * m->scale;
                     anchor_px_x = m->anchor_x * m->content_width;
                     anchor_px_y = m->anchor_y * m->content_height;
                     // The image range after scaling.
@@ -208,16 +208,16 @@ void daku_world_write(daku_world *world, const char *path)
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
                     for (y = min_y; y < max_y; ++y) { \
-                        y1 = anchor_px_y + ((y - y0) - (float)anchor_px_y) / m->scale; \
+                        y1 = anchor_px_y + m->content_start_y + (float)(y - m->y) / m->scale; \
                         for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
-                            x1 = anchor_px_x + ((x - x0) - (float)anchor_px_x) / m->scale; \
+                            x1 = anchor_px_x + m->content_start_x + (float)(x - m->x) / m->scale; \
                             /* Rotate. */ \
                             if (rotation_rad == 0) { \
                                 x2 = x1; y2 = y1; \
                             } else { \
-                                x2 = (x1 - anchor_px_x) * cos(rotation_rad) - (y1 - anchor_px_y) * sin(rotation_rad) + anchor_px_x; \
-                                y2 = (x1 - anchor_px_x) * sin(rotation_rad) + (y1 - anchor_px_y) * cos(rotation_rad) + anchor_px_y; \
+                                x2 = (x1 - anchor_px_x - m->content_start_x) * cos(rotation_rad) - (y1 - anchor_px_y - m->content_start_y) * sin(rotation_rad) + anchor_px_x + m->content_start_x; \
+                                y2 = (x1 - anchor_px_x - m->content_start_x) * sin(rotation_rad) + (y1 - anchor_px_y - m->content_start_y) * cos(rotation_rad) + anchor_px_y + m->content_start_y; \
                             } \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
