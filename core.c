@@ -150,8 +150,9 @@ void daku_world_write(daku_world *world, const char *path)
     float cur_time;
     int x0, y0, x, y, w, h;
     float anchor_px_x, anchor_px_y;
-    int x1, y1, min_x, max_x, min_y, max_y;
-    uint16_t alpha;
+    float x1, y1;
+    int x2, y2, min_x, max_x, min_y, max_y;
+    uint16_t alpha; float rotation_rad;
     int seconds;
     int frames_in_sec;
     // Initialize all waves and instruments first, for they don't need any extra data.
@@ -197,7 +198,7 @@ void daku_world_write(daku_world *world, const char *path)
                     anchor_px_x = m->anchor_x * m->content_width;
                     anchor_px_y = m->anchor_y * m->content_height;
                     // The image range after scaling.
-                    min_x = MIN(0, x0);
+                    min_x = MIN(0, x0); // TODO: Change this! It's not correct at all!
                     max_x = MAX(world->width - 1, x0 + m->scale * m->pict_width);
                     min_y = MIN(0, y0);
                     max_y = MAX(world->height - 1, y0 + m->scale * m->pict_height);
@@ -205,12 +206,16 @@ void daku_world_write(daku_world *world, const char *path)
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
                     for (y = min_y; y < max_y; ++y) { \
-                        y1 = anchor_px_y + ((y - y0) - anchor_px_y) / m->scale; \
-                        if (y1 >= 0 && y1 < m->pict_height) for (x = min_x; x < max_x; ++x) { \
+                        y1 = anchor_px_y + ((y - y0) - (float)anchor_px_y) / m->scale; \
+                        for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
-                            x1 = anchor_px_x + ((x - x0) - anchor_px_x) / m->scale; \
-                            if (x1 >= 0 && x1 < m->pict_width) { \
-                                alpha = m->picture[(y1 * (int)m->pict_width + x1) * 4 + 3] * m->opacity / 65535; \
+                            x1 = anchor_px_x + ((x - x0) - (float)anchor_px_x) / m->scale; \
+                            /* Rotate. */ \
+                            rotation_rad = m->rotation * M_PI / 180.0; \
+                            x2 = (x1 - anchor_px_x) * cos(rotation_rad) - (y1 - anchor_px_y) * sin(rotation_rad) + anchor_px_x; \
+                            y2 = (x1 - anchor_px_x) * sin(rotation_rad) + (y1 - anchor_px_y) * cos(rotation_rad) + anchor_px_y; \
+                            if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
+                                alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 0], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 1], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 2], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
@@ -221,11 +226,11 @@ void daku_world_write(daku_world *world, const char *path)
                     // XXX: Will the compiler detect unchanged values (__fx and__fy) in loops and optimize?
                     // We won't need these macros if so.
                     if (m->flipped_y) {
-                        if (m->flipped_x) COPY_PICT(m->pict_width - x1 - 1, m->pict_height - y1 - 1);
-                        else COPY_PICT(x1, m->pict_height - y1 - 1);
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x2 - 1, m->pict_height - y2 - 1);
+                        else COPY_PICT(x2, m->pict_height - y2 - 1);
                     } else {
-                        if (m->flipped_x) COPY_PICT(m->pict_width - x1 - 1, y1);
-                        else COPY_PICT(x1, y1);
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x2 - 1, y2);
+                        else COPY_PICT(x2, y2);
                     }
             #undef COPY_PICT
             #undef ALPHA_MIX

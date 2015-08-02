@@ -103,3 +103,28 @@ daku_action *daku_fx_scaleto(float duration, float scale)
     ret->end_scale = scale;
     return (daku_action *)ret;
 }
+
+typedef struct __daku_fx_scale __daku_fx_rotate;    // (/_<)
+#define start_angle start_scale                     // (/_<)
+#define end_angle   end_scale                       // (/_<)
+void _daku_fx_rotateto_update(daku_action *action, float progress)
+{
+    __daku_fx_rotate *duang = (__daku_fx_rotate *)action;
+    action->target->rotation = duang->start_angle * (1 - progress) + duang->end_angle * progress;
+}
+int _daku_fx_rotateto_init(daku_action *action)
+{
+    __daku_fx_rotate *ret = (__daku_fx_rotate *)action;
+    ret->start_angle = action->target->rotation;
+    return 0;
+}
+daku_action *daku_fx_rotateto(float duration, float angle_deg)
+{
+    __daku_fx_rotate *ret = (__daku_fx_rotate *)malloc(sizeof(__daku_fx_rotate));
+    ret->base.duration = duration;
+    ret->base.initialized = 0;
+    ret->base.init = &_daku_fx_rotateto_init;
+    ret->base.update = &_daku_fx_rotateto_update;
+    ret->end_angle = angle_deg;
+    return (daku_action *)ret;
+}

@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     daku_matter_setpos(m, 500, 100);
     daku_matter_act(m, 0, daku_video_clip("xx.gif", 3, 5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
+    daku_matter_act(m, 1, daku_fx_rotateto(2, 135));
     daku_world_populate(world, m, 0);
 
     m = daku_matter_create();
