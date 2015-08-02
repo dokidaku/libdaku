@@ -14,7 +14,7 @@ typedef struct __daku_matter {
     float start_time, life_time;
     float content_width, content_height;
     float content_start_x, content_start_y;
-    float pict_width, pict_height;
+    int pict_width, pict_height;
     float anchor_x, anchor_y;
     float x, y, rotation, scale;
     uint16_t opacity;

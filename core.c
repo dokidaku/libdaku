@@ -13,6 +13,7 @@ daku_matter *daku_matter_create()
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
     ret->x = ret->y = ret->rotation = 0;
+    ret->scale = 1;
     ret->opacity = 65535;
     ret->flipped_x = ret->flipped_y = 0;
     ret->actions = daku_list_create(NULL);
@@ -147,7 +148,9 @@ void daku_world_write(daku_world *world, const char *path)
     }
     unsigned int frame_num = 0;
     float cur_time;
-    int x0, y0, x1, y1, x, y, w, h;
+    int x0, y0, x, y, w, h;
+    float anchor_px_x, anchor_px_y;
+    int x1, y1, min_x, max_x, min_y, max_y;
     uint16_t alpha;
     int seconds;
     int frames_in_sec;
@@ -191,29 +194,38 @@ void daku_world_write(daku_world *world, const char *path)
                         }
                     x0 = m->x - m->anchor_x * m->content_width - m->content_start_x;
                     y0 = m->y - m->anchor_y * m->content_height - m->content_start_y;
-                    w = MIN(m->pict_width, world->width - x0);
-                    h = MIN(m->pict_height, world->height - y0);
-                    x1 = x0 < 0 ? -x0 : 0;
-                    y1 = y0 < 0 ? -y0 : 0;
+                    anchor_px_x = m->anchor_x * m->content_width;
+                    anchor_px_y = m->anchor_y * m->content_height;
+                    // The image range after scaling.
+                    min_x = MIN(0, x0);
+                    max_x = MAX(world->width - 1, x0 + m->scale * m->pict_width);
+                    min_y = MIN(0, y0);
+                    max_y = MAX(world->height - 1, y0 + m->scale * m->pict_height);
             #define ALPHA_MIX(__orig, __new) \
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
-                    for (y = y1; y < h; ++y) \
-                        for (x = x1; x < w; ++x) { \
-                            alpha = m->picture[(int)(y * m->pict_width + x) * 4 + 3] * m->opacity / 65535; \
-                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 0], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
-                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 1], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
-                            ALPHA_MIX(ipict[(int)((world->width - y - y0 - 1) * world->width + x + x0) * 3 + 2], m->picture[(int)((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
+                    for (y = min_y; y < max_y; ++y) { \
+                        y1 = anchor_px_y + ((y - y0) - anchor_px_y) / m->scale; \
+                        if (y1 >= 0 && y1 < m->pict_height) for (x = min_x; x < max_x; ++x) { \
+                            /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
+                            x1 = anchor_px_x + ((x - x0) - anchor_px_x) / m->scale; \
+                            if (x1 >= 0 && x1 < m->pict_width) { \
+                                alpha = m->picture[(y1 * (int)m->pict_width + x1) * 4 + 3] * m->opacity / 65535; \
+                                ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 0], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
+                                ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 1], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
+                                ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 2], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
+                            } \
                         } \
-                    } while (0)
+                    } \
+                } while (0)
                     // XXX: Will the compiler detect unchanged values (__fx and__fy) in loops and optimize?
                     // We won't need these macros if so.
                     if (m->flipped_y) {
-                        if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, m->pict_height - y - 1);
-                        else COPY_PICT(x, m->pict_height - y - 1);
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x1 - 1, m->pict_height - y1 - 1);
+                        else COPY_PICT(x1, m->pict_height - y1 - 1);
                     } else {
-                        if (m->flipped_x) COPY_PICT(m->pict_width - x - 1, y);
-                        else COPY_PICT(x, y);
+                        if (m->flipped_x) COPY_PICT(m->pict_width - x1 - 1, y1);
+                        else COPY_PICT(x1, y1);
                     }
             #undef COPY_PICT
             #undef ALPHA_MIX
