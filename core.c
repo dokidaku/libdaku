@@ -198,10 +198,12 @@ void daku_world_write(daku_world *world, const char *path)
                     anchor_px_x = m->anchor_x * m->content_width;
                     anchor_px_y = m->anchor_y * m->content_height;
                     // The image range after scaling.
-                    min_x = MIN(0, x0); // TODO: Change this! It's not correct at all!
-                    max_x = MAX(world->width - 1, x0 + m->scale * m->pict_width);
-                    min_y = MIN(0, y0);
-                    max_y = MAX(world->height - 1, y0 + m->scale * m->pict_height);
+                    min_x = 0;
+                    max_x = world->width;
+                    min_y = 0;
+                    max_y = world->height;
+                    rotation_rad = m->rotation * M_PI / 180.0;
+                    if (fabs(rotation_rad) <= 1e-5) rotation_rad = 0;
             #define ALPHA_MIX(__orig, __new) \
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
@@ -211,9 +213,12 @@ void daku_world_write(daku_world *world, const char *path)
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
                             x1 = anchor_px_x + ((x - x0) - (float)anchor_px_x) / m->scale; \
                             /* Rotate. */ \
-                            rotation_rad = m->rotation * M_PI / 180.0; \
-                            x2 = (x1 - anchor_px_x) * cos(rotation_rad) - (y1 - anchor_px_y) * sin(rotation_rad) + anchor_px_x; \
-                            y2 = (x1 - anchor_px_x) * sin(rotation_rad) + (y1 - anchor_px_y) * cos(rotation_rad) + anchor_px_y; \
+                            if (rotation_rad == 0) { \
+                                x2 = x1; y2 = y1; \
+                            } else { \
+                                x2 = (x1 - anchor_px_x) * cos(rotation_rad) - (y1 - anchor_px_y) * sin(rotation_rad) + anchor_px_x; \
+                                y2 = (x1 - anchor_px_x) * sin(rotation_rad) + (y1 - anchor_px_y) * cos(rotation_rad) + anchor_px_y; \
+                            } \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 0], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
