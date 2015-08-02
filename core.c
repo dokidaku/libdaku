@@ -150,7 +150,7 @@ void daku_world_write(daku_world *world, const char *path)
     float cur_time;
     int x0, y0, x, y, w, h;
     float anchor_px_x, anchor_px_y;
-    float x1, y1;
+    float x1, y1, x3[4], y3[4];
     int x2, y2, min_x, max_x, min_y, max_y;
     uint16_t alpha; float rotation_rad;
     int seconds;
@@ -174,6 +174,7 @@ void daku_world_write(daku_world *world, const char *path)
     }
     // Generate picture frames one by one.
     for (seconds = 0; seconds < world->duration; ++seconds) {
+        printf("Second #%d, elapsed %.2f seconds\n", seconds + 1, (float)(clock() - start_time) / CLOCKS_PER_SEC);
         frames_in_sec = (world->duration - seconds >= 1) ? world->fps : (world->duration - seconds) * world->fps;
         for (frame_num = 0; frame_num < frames_in_sec; ++frame_num) {
             // Render one frame.
@@ -193,17 +194,36 @@ void daku_world_write(daku_world *world, const char *path)
                             }
                             ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
                         }
-                    x0 = m->x - (m->anchor_x * m->content_width - m->content_start_x) * m->scale;
-                    y0 = m->y - (m->anchor_y * m->content_height - m->content_start_y) * m->scale;
                     anchor_px_x = m->anchor_x * m->content_width;
                     anchor_px_y = m->anchor_y * m->content_height;
-                    // The image range after scaling.
-                    min_x = 0;
-                    max_x = world->width;
-                    min_y = 0;
-                    max_y = world->height;
+                    x0 = m->x - (anchor_px_x + m->content_start_x) * m->scale;
+                    y0 = m->y - (anchor_px_y + m->content_start_y) * m->scale;
                     rotation_rad = m->rotation * M_PI / 180.0;
                     if (fabs(rotation_rad) <= 1e-5) rotation_rad = 0;
+                    // The image range after scaling & rotating.
+                    if (rotation_rad == 0) {
+                        min_x = MAX(x0, 0); max_x = MIN(x0 + m->pict_width * m->scale, world->width);
+                        min_y = MAX(y0, 0); max_y = MIN(y0 + m->pict_height * m->scale, world->height);
+                    } else {
+            #define ROT(__nx, __ny, __x, __y, __cx, __cy, __rad) do { \
+                __nx = (float)((__x) - (__cx)) * cos(__rad) - (float)((__y) - (__cy)) * sin(__rad) + (__cx); \
+                __ny = (float)((__x) - (__cx)) * sin(__rad) + (float)((__y) - (__cy)) * cos(__rad) + (__cy); \
+            } while (0)
+                        ROT(x3[0], y3[0], x0, y0, m->x, m->y, -rotation_rad);
+                        ROT(x3[1], y3[1], x0, y0 + m->pict_height * m->scale, m->x, m->y, -rotation_rad);
+                        ROT(x3[2], y3[2], x0 + m->pict_width * m->scale, y0 + m->pict_height * m->scale, m->x, m->y, -rotation_rad);
+                        ROT(x3[3], y3[3], x0 + m->pict_width * m->scale, y0, m->x, m->y, -rotation_rad);
+                        min_x = world->width; max_x = 0;
+                        min_y = world->height; max_y = 0;
+                        for (x = 0; x < 4; ++x) {
+                            if (max_x < x3[x]) max_x = x3[x]; if (min_x > x3[x]) min_x = x3[x];
+                            if (max_y < y3[x]) max_y = y3[x]; if (min_y > y3[x]) min_y = y3[x];
+                        }
+                        // Some crops may occur due to... precision limits...?
+                        max_x += 5; min_x -= 5; max_y += 5; min_y -= 5;
+                        if (max_x > world->width) max_x = world->width; if (min_x < 0) min_x = 0;
+                        if (max_y > world->height) max_y = world->height; if (min_y < 0) min_y = 0;
+                    }
             #define ALPHA_MIX(__orig, __new) \
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
@@ -216,8 +236,7 @@ void daku_world_write(daku_world *world, const char *path)
                             if (rotation_rad == 0) { \
                                 x2 = x1; y2 = y1; \
                             } else { \
-                                x2 = (x1 - anchor_px_x - m->content_start_x) * cos(rotation_rad) - (y1 - anchor_px_y - m->content_start_y) * sin(rotation_rad) + anchor_px_x + m->content_start_x; \
-                                y2 = (x1 - anchor_px_x - m->content_start_x) * sin(rotation_rad) + (y1 - anchor_px_y - m->content_start_y) * cos(rotation_rad) + anchor_px_y + m->content_start_y; \
+                                ROT(x2, y2, x1, y1, anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, rotation_rad); \
                             } \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
@@ -239,6 +258,7 @@ void daku_world_write(daku_world *world, const char *path)
                     }
             #undef COPY_PICT
             #undef ALPHA_MIX
+            #undef ROT
                 }
             // Save.
             // TODO: Directly use RGB48 format in frame pushers.
