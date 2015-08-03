@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifndef TRUE
+    #define TRUE 1
+#endif
+#ifndef FALSE
+    #define FALSE 0
+#endif
 
 daku_matter *daku_matter_create()
 {
@@ -151,7 +157,9 @@ void daku_world_write(daku_world *world, const char *path)
     int x0, y0, x, y, w, h;
     float anchor_px_x, anchor_px_y;
     float x1, y1, x3[4], y3[4];
+    float sin_rad, sin_negrad, cos_rad, cos_negrad;
     int x2, y2, min_x, max_x, min_y, max_y;
+    unsigned char line_started;
     uint16_t alpha; float rotation_rad;
     int seconds;
     int frames_in_sec;
@@ -189,7 +197,7 @@ void daku_world_write(daku_world *world, const char *path)
                             && m->start_time + ac->start_time + ac->duration >= cur_time)
                         {
                             if (!ac->initialized) {
-                                ac->initialized = 1;
+                                ac->initialized = TRUE;
                                 if (ac->init) ac->init(ac);
                             }
                             ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
@@ -200,19 +208,21 @@ void daku_world_write(daku_world *world, const char *path)
                     y0 = m->y - (anchor_px_y + m->content_start_y) * m->scale;
                     rotation_rad = m->rotation * M_PI / 180.0;
                     if (fabs(rotation_rad) <= 1e-5) rotation_rad = 0;
+                    sin_rad = sin(rotation_rad); cos_rad = cos(rotation_rad);
+                    sin_negrad = -sin_rad; cos_negrad = cos_rad;
                     // The image range after scaling & rotating.
                     if (rotation_rad == 0) {
                         min_x = MAX(x0, 0); max_x = MIN(x0 + m->pict_width * m->scale, world->width);
                         min_y = MAX(y0, 0); max_y = MIN(y0 + m->pict_height * m->scale, world->height);
                     } else {
-            #define ROT(__nx, __ny, __x, __y, __cx, __cy, __rad) do { \
-                __nx = (float)((__x) - (__cx)) * cos(__rad) - (float)((__y) - (__cy)) * sin(__rad) + (__cx); \
-                __ny = (float)((__x) - (__cx)) * sin(__rad) + (float)((__y) - (__cy)) * cos(__rad) + (__cy); \
+            #define ROT(__nx, __ny, __x, __y, __cx, __cy, __sinrad, __cosrad) do { \
+                __nx = (float)((__x) - (__cx)) * (__cosrad) - (float)((__y) - (__cy)) * (__sinrad) + (__cx); \
+                __ny = (float)((__x) - (__cx)) * (__sinrad) + (float)((__y) - (__cy)) * (__cosrad) + (__cy); \
             } while (0)
-                        ROT(x3[0], y3[0], x0, y0, m->x, m->y, -rotation_rad);
-                        ROT(x3[1], y3[1], x0, y0 + m->pict_height * m->scale, m->x, m->y, -rotation_rad);
-                        ROT(x3[2], y3[2], x0 + m->pict_width * m->scale, y0 + m->pict_height * m->scale, m->x, m->y, -rotation_rad);
-                        ROT(x3[3], y3[3], x0 + m->pict_width * m->scale, y0, m->x, m->y, -rotation_rad);
+                        ROT(x3[0], y3[0], x0, y0, m->x, m->y, sin_negrad, cos_negrad);
+                        ROT(x3[1], y3[1], x0, y0 + m->pict_height * m->scale, m->x, m->y, sin_negrad, cos_negrad);
+                        ROT(x3[2], y3[2], x0 + m->pict_width * m->scale, y0 + m->pict_height * m->scale, m->x, m->y, sin_negrad, cos_negrad);
+                        ROT(x3[3], y3[3], x0 + m->pict_width * m->scale, y0, m->x, m->y, sin_negrad, cos_negrad);
                         min_x = world->width; max_x = 0;
                         min_y = world->height; max_y = 0;
                         for (x = 0; x < 4; ++x) {
@@ -229,6 +239,7 @@ void daku_world_write(daku_world *world, const char *path)
             #define COPY_PICT(__fx, __fy) do { \
                     for (y = min_y; y < max_y; ++y) { \
                         y1 = anchor_px_y + m->content_start_y + (float)(y - m->y) / m->scale; \
+                        line_started = FALSE; \
                         for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
                             x1 = anchor_px_x + m->content_start_x + (float)(x - m->x) / m->scale; \
@@ -236,14 +247,15 @@ void daku_world_write(daku_world *world, const char *path)
                             if (rotation_rad == 0) { \
                                 x2 = x1; y2 = y1; \
                             } else { \
-                                ROT(x2, y2, x1, y1, anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, rotation_rad); \
+                                ROT(x2, y2, x1, y1, anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, sin_rad, cos_rad); \
                             } \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
+                                line_started = TRUE; \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 0], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 1], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 2], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
-                            } \
+                            } else if (line_started) break; \
                         } \
                     } \
                 } while (0)
