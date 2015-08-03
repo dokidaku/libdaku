@@ -58,6 +58,28 @@ int main()
     daku_test(daku_list_at(list, 2) == 0x99ffff, NULL);
     daku_test(daku_list_at(list, 3) == NULL, "List with an initial value of NULL, push back first");
 
+    void *d3[] = { 10961096, 866666, 02333, 888888, 877777 };
+    list = daku_list_create(10961096);
+    daku_list_insert(list, list->tail, 888888);
+    daku_list_insert(list, list->tail, 877777);
+    daku_list_insert(list, list->head, 866666);
+    daku_list_insert(list, list->head->next, 02333);
+    for (i = 0; i < 5; ++i) {
+        d1 = daku_list_at(list, i);
+        daku_test(d1 == d3[i], NULL);
+    }
+    daku_test(DAKU_TEST_END, "Insertion");
+
+    daku_list_foreach(list, d1) if (d1 == 888888) {
+        daku_list_insert(list, list->itr, 8080); break;
+    }
+    void *d4[] = { 10961096, 866666, 02333, 888888, 8080, 877777 };
+    for (i = 0; i < 6; ++i) {
+        d1 = daku_list_at(list, i);
+        daku_test(d1 == d4[i], NULL);
+    }
+    daku_test(DAKU_TEST_END, "Iterator access");
+
     daku_test_finish();
     return 0;
 }
