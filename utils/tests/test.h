@@ -15,12 +15,12 @@
  */
 void daku_test(unsigned char bool_value, const char *description)
 {
-    static int test_num = 1, test_case_num = 1;
+    static int test_num = 1, test_case_num = 0;
     if (description) {
-        printf("Test #%d: %s\n", test_num++, description);
-        test_case_num = 1;
+        printf("PASS #%d: %s\n", test_num++, description);
+        test_case_num = 0;
     } else {
-        printf("Test #%d, case #%d\n", test_num, test_case_num++);
+        printf("Test #%d, case #%d\n", test_num, ++test_case_num);
     }
     if (!bool_value) {
         printf("FAILED ON TEST #%d CASE #%d (/_<)\n", test_num, test_case_num);

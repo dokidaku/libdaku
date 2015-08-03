@@ -18,13 +18,16 @@ typedef struct __daku_list_block {
 
 typedef struct __daku_list {
     struct __daku_list_block *head, *tail, *itr;
+    int length;
 } daku_list;
 
 daku_list *daku_list_create(void *val);
 void daku_list_push_front(daku_list *list, void *val);
 void daku_list_push_back(daku_list *list, void *val);
+daku_list_block *daku_list_itr_at(daku_list *list, int idx);
 void *daku_list_at(daku_list *list, int idx);
 void daku_list_insert(daku_list *list, daku_list_block *after, void *val);
+void daku_list_remove(daku_list *list, daku_list_block *after);
 #define daku_list_foreach(__list, __itrname)    \
     for ((__list)->itr = (__list)->head,        \
         __itrname = (__list)->itr->data;        \

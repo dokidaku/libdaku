@@ -80,6 +80,21 @@ int main()
     }
     daku_test(DAKU_TEST_END, "Iterator access");
 
+    daku_list_remove(list, daku_list_itr_at(list, 2));
+    daku_list_remove(list, daku_list_itr_at(list, 3));
+    void *d5[] = { 10961096, 866666, 02333, 8080 };
+    for (i = 0; i < 4; ++i) {
+        d1 = daku_list_at(list, i);
+        daku_test(d1 == d5[i], NULL);
+    }
+    daku_list_remove(list, NULL);
+    i = 0;
+    daku_list_foreach(list, d1) {
+        daku_test(d1 == d5[++i], NULL);
+    }
+    daku_test(list->length == 3, NULL);
+    daku_test(DAKU_TEST_END, "Removal and iterator access by indices");
+
     daku_test_finish();
     return 0;
 }
