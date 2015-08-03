@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 1, daku_fx_rotateto(4, 90));
     m->flipped_y = 1;
     m->flipped_x = 1;
+    m->z_order = 6;
     daku_world_populate(world, m, 0);
 
     w = daku_wave_create();
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 100, 100);
     daku_matter_setanchor(m, 1, 0);
     daku_matter_setpos(m, 500, 100);
-    daku_matter_act(m, 0, daku_video_clip("xx.png", 3, 5));
+    daku_matter_act(m, 0, daku_video_clip("xx.gif", 3, 5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
     daku_matter_act(m, 1, daku_fx_rotateto(2, 135));
     daku_world_populate(world, m, 0);
@@ -69,9 +70,10 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 150, 150);
     daku_matter_setanchor(m, 0, 1);
     daku_matter_setpos(m, 100, 500);
-    daku_matter_act(m, 0, daku_image_clip(5, "xx.jpg"));
+    daku_matter_act(m, 0, daku_image_clip(5, "xx.png"));
     daku_matter_act(m, 0, daku_fx_scaleto(2, 2));
     m->flipped_x = 1;
+    m->z_order = -1;
     daku_world_populate(world, m, 1);
 
     m = daku_matter_create();
@@ -100,6 +102,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, -30, 0));
+    daku_matter_act(m, 1, daku_fx_rotateto(3, -45));
     m->opacity = 0;
     daku_world_populate(world, m, 0);
 
