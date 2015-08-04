@@ -92,9 +92,10 @@ daku_world *daku_world_create(int width, int height, float duration)
     return ret;
 }
 
-void daku_world_populate(daku_world *world, daku_matter *resident, float start_time)
+void daku_world_populate(daku_world *world, daku_matter *resident, float start_time, int z_order)
 {
     resident->start_time = start_time;
+    resident->z_order = z_order;
     daku_list_push_back(world->population, resident);
 }
 void daku_world_clang(daku_world *world, daku_wave *duangduang, float start_time)
