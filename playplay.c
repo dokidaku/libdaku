@@ -39,7 +39,8 @@ int main(int argc, char *argv[])
     m = daku_matter_create();
     daku_matter_setlife(m, 5);
     daku_matter_setsize(m, 300, 200);
-    daku_matter_setpos(m, 300, 300);
+    daku_matter_setpos(m, 0, 0);
+    daku_matter_act(m, 0.5, daku_fx_moveby(0.0001, 300, 300));
     daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
     daku_matter_act(m, 1, daku_fx_scaleto(4, 0.2));
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
     daku_matter_setpos(m, 100, 500);
     daku_matter_act(m, 0, daku_image_clip(5, "xx.jpg"));
     daku_matter_act(m, 0, daku_fx_scaleto(2, 2));
-    m->flipped_x = 1;
+    daku_matter_act(m, 1, daku_fx_flip_x());
     daku_world_populate(world, m, 1, -1);
 
     m = daku_matter_create();

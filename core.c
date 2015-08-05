@@ -192,6 +192,7 @@ void daku_world_write(daku_world *world, const char *path)
 
     unsigned int frame_num = 0;
     float cur_time;
+    float action_progress;
     int x0, y0, x, y, w, h;
     float anchor_px_x, anchor_px_y;
     float x1, y1, x3[4], y3[4];
@@ -252,14 +253,20 @@ void daku_world_write(daku_world *world, const char *path)
             }
             daku_list_foreach_t(presenters, daku_matter *, m) if (m) {
                 daku_list_foreach_t(m->actions, daku_action *, ac)
-                    if (ac && m->start_time + ac->start_time <= cur_time
-                        && m->start_time + ac->start_time + ac->duration >= cur_time)
+                    if (ac && m->start_time + ac->start_time <= cur_time &&
+                        (m->start_time + ac->start_time + ac->duration >= cur_time || !ac->finalized))
                     {
                         if (!ac->initialized) {
                             ac->initialized = TRUE;
                             if (ac->init) ac->init(ac);
                         }
-                        ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
+                        action_progress = (cur_time - m->start_time - ac->start_time) / ac->duration;
+                        if (action_progress < 1) {
+                            ac->update(ac, (cur_time - m->start_time - ac->start_time) / ac->duration);
+                        } else {
+                            ac->update(ac, 1);
+                            ac->finalized = TRUE;
+                        }
                     }
                 anchor_px_x = m->anchor_x * m->content_width;
                 anchor_px_y = m->anchor_y * m->content_height;
