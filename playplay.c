@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
-    daku_matter_act(m, 1, daku_fx_rotateto(3, 45));
+    daku_matter_act(m, 1, daku_fx_skewby(3, 45, 0));
     m->opacity = 0;
     daku_world_populate(world, m, 0, 0);
 
@@ -106,11 +106,14 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 2.5);
-    daku_matter_setsize(m, 600, 600);
+    daku_matter_setanchor(m, 0.9, 0.2);
+    daku_matter_setsize(m, 200, 200);
     daku_matter_setpos(m, 300, 300);
     daku_matter_act(m, 0, daku_image_clip(2, "xx.jpg"));
-    daku_matter_act(m, 0, daku_fx_skewby(1.5, 30, 15));
-    daku_world_populate(world, m, 12.5, -100);
+    daku_matter_act(m, 0, daku_fx_skewby(0.5, 30, 0));
+    daku_matter_act(m, 1, daku_fx_rotateto(0.5, 45));
+    daku_matter_act(m, 1.5, daku_fx_scaleto(0.5, 2));
+    daku_world_populate(world, m, 12, -100);
 
     daku_world_write(world, argv[1]);
 

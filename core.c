@@ -273,54 +273,82 @@ void daku_world_write(daku_world *world, const char *path)
                 tan_skew_x = tan(m->skew_x * M_PI / 180.0);
                 tan_skew_y = tan(m->skew_y * M_PI / 180.0);
                 // The image range after scaling & rotating.
+                // > Calculate three vertices first: [0], [1], [3]
+                // > [1] ----- [2]
+                // >  /         /
+                // >  /         /
+                // > [0] ----- [3]
+                x3[0] = x3[1] = y3[0] = y3[3] = 0;
+                x3[3] = m->pict_width * m->scale;
+                y3[1] = m->pict_height * m->scale;
+                // > Skew. This code can be made more elegant.
+                x2 = x3[3] + y3[3] * tan_skew_x;
+                y2 = y3[3] + x3[3] * tan_skew_y;
+                x3[3] = x2; y3[3] = y2;
+                x2 = x3[1] + y3[1] * tan_skew_x;
+                y2 = y3[1] + x3[1] * tan_skew_y;
+                x3[1] = x2; y3[1] = y2;
+                // > vector([0]-[1]) = vector([3]-[2])
+                x3[2] = x3[3] + x3[1] - x3[0];
+                y3[2] = y3[3] + y3[1] - y3[0];
+                for (x = 0; x < 4; ++x) {
+                    x3[x] += x0 - anchor_px_y * tan_skew_x * m->scale;
+                    y3[x] += y0 - anchor_px_x * tan_skew_y * m->scale;
+                }
+                min_x = world->width; max_x = 0;
+                min_y = world->height; max_y = 0;
                 if (rotation_rad == 0) {
-                    min_x = MAX(x0, 0); max_x = MIN(x0 + m->pict_width * m->scale, world->width);
-                    min_y = MAX(y0, 0); max_y = MIN(y0 + m->pict_height * m->scale, world->height);
+                    for (x = 0; x < 4; ++x) {
+                        if (max_x < x3[x]) max_x = x3[x]; if (min_x > x3[x]) min_x = x3[x];
+                        if (max_y < y3[x]) max_y = y3[x]; if (min_y > y3[x]) min_y = y3[x];
+                    }
                 } else {
             #define ROT(__nx, __ny, __x, __y, __cx, __cy, __sinrad, __cosrad) do { \
                 __nx = (float)((__x) - (__cx)) * (__cosrad) - (float)((__y) - (__cy)) * (__sinrad) + (__cx); \
                 __ny = (float)((__x) - (__cx)) * (__sinrad) + (float)((__y) - (__cy)) * (__cosrad) + (__cy); \
             } while (0)
-                    ROT(x3[0], y3[0], x0, y0, m->x, m->y, sin_negrad, cos_negrad);
-                    ROT(x3[1], y3[1], x0, y0 + m->pict_height * m->scale, m->x, m->y, sin_negrad, cos_negrad);
-                    ROT(x3[2], y3[2], x0 + m->pict_width * m->scale, y0 + m->pict_height * m->scale, m->x, m->y, sin_negrad, cos_negrad);
-                    ROT(x3[3], y3[3], x0 + m->pict_width * m->scale, y0, m->x, m->y, sin_negrad, cos_negrad);
-                    min_x = world->width; max_x = 0;
-                    min_y = world->height; max_y = 0;
                     for (x = 0; x < 4; ++x) {
-                        if (max_x < x3[x]) max_x = x3[x]; if (min_x > x3[x]) min_x = x3[x];
-                        if (max_y < y3[x]) max_y = y3[x]; if (min_y > y3[x]) min_y = y3[x];
+                        ROT(x2, y2, x3[x], y3[x], m->x, m->y, sin_negrad, cos_negrad);
+                        if (max_x < x2) max_x = x2; if (min_x > x2) min_x = x2;
+                        if (max_y < y2) max_y = y2; if (min_y > y2) min_y = y2;
                     }
                     // Some crops may occur due to... precision limits...?
                     max_x += 5; min_x -= 5; max_y += 5; min_y -= 5;
-                    if (max_x > world->width) max_x = world->width; if (min_x < 0) min_x = 0;
-                    if (max_y > world->height) max_y = world->height; if (min_y < 0) min_y = 0;
                 }
+                if (max_x > world->width) max_x = world->width; if (min_x < 0) min_x = 0;
+                if (max_y > world->height) max_y = world->height; if (min_y < 0) min_y = 0;
             #define ALPHA_MIX(__orig, __new) \
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
                     for (y = min_y; y < max_y; ++y) { \
                         y1 = anchor_px_y + m->content_start_y + (float)(y - m->y) / m->scale; \
-                        line_started = FALSE; \
+                        line_started = 0; \
                         for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
                             x1 = anchor_px_x + m->content_start_x + (float)(x - m->x) / m->scale; \
-                            /* Skew. Reuse resource :D */ \
-                            x3[0] = x1 - y1 * tan_skew_x; \
-                            y3[0] = y1 - x1 * tan_skew_y; \
                             /* Rotate. */ \
                             if (rotation_rad == 0) { \
-                                x2 = x3[0]; y2 = y3[0]; \
+                                x2 = x1; y2 = y1; \
                             } else { \
-                                ROT(x2, y2, x3[0], y3[0], anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, sin_rad, cos_rad); \
+                                ROT(x2, y2, x1, y1, anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, sin_rad, cos_rad); \
                             } \
+                            /* Skew. Reuse resource :D */ \
+                            /* x3[0] + y3[0] * tan_skew_x = x1
+                             * y3[0] + x3[0] * tan_skew_y = y1
+                             *         x3[0] * tan_skew_y + y3[0] * tan_skew_x * tan_skew_y = x1 * tan_skew_y **/ \
+                            x2 -= anchor_px_x * m->scale; \
+                            y2 -= anchor_px_y * m->scale; \
+                            x3[0] = (x2 - y2 * tan_skew_x) / (1 - tan_skew_x * tan_skew_y); \
+                            y3[0] = (y2 - x2 * tan_skew_y) / (1 - tan_skew_x * tan_skew_y); \
+                            x2 = x3[0] + anchor_px_x * m->scale; \
+                            y2 = y3[0] + anchor_px_y * m->scale; \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
-                                line_started = TRUE; \
+                                ++line_started; \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 0], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 0]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 1], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 1]); \
                                 ALPHA_MIX(ipict[(int)((world->height - y - 1) * world->width + x) * 3 + 2], m->picture[((__fy) * m->pict_width + (__fx)) * 4 + 2]); \
-                            } else if (line_started) break; \
+                            } else if (line_started >= 10) break; \
                         } \
                     } \
                 } while (0)
