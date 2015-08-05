@@ -109,9 +109,8 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 600, 600);
     daku_matter_setpos(m, 300, 300);
     daku_matter_act(m, 0, daku_image_clip(2, "xx.jpg"));
-    m->skew_x = 30;
-    m->skew_y = 15;
-    daku_world_populate(world, m, 0, -100);
+    daku_matter_act(m, 0, daku_fx_skewby(1.5, 30, 15));
+    daku_world_populate(world, m, 12.5, -100);
 
     daku_world_write(world, argv[1]);
 

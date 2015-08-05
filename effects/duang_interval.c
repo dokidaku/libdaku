@@ -128,3 +128,24 @@ daku_action *daku_fx_rotateto(float duration, float angle_deg)
     ret->end_angle = angle_deg;
     return (daku_action *)ret;
 }
+
+typedef struct __daku_fx_move __daku_fx_skew;   // (/_<)
+void _daku_fx_skewby_update(daku_action *action, float progress)
+{
+    __daku_fx_skew *duang = (__daku_fx_skew *)action;
+    action->target->skew_x += (progress - duang->last_progress) * duang->x;
+    action->target->skew_y += (progress - duang->last_progress) * duang->y;
+    duang->last_progress = progress;
+}
+daku_action *daku_fx_skewby(float duration, float x_angle, float y_angle)
+{
+    __daku_fx_skew *ret = (__daku_fx_skew *)malloc(sizeof(__daku_fx_skew));
+    ret->base.duration = duration;
+    ret->base.initialized = 0;
+    ret->base.init = NULL;
+    ret->base.update = &_daku_fx_skewby_update;
+    ret->last_progress = 0;
+    ret->x = x_angle;
+    ret->y = y_angle;
+    return (daku_action *)ret;
+}
