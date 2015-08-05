@@ -18,7 +18,7 @@ daku_matter *daku_matter_create()
     ret->content_start_x = ret->content_start_y = 0;
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
-    ret->x = ret->y = ret->rotation = 0;
+    ret->x = ret->y = ret->rotation = ret->skew_x = ret->skew_y = 0;
     ret->scale = 1;
     ret->z_order = 0;
     ret->opacity = 65535;
@@ -198,7 +198,8 @@ void daku_world_write(daku_world *world, const char *path)
     float sin_rad, sin_negrad, cos_rad, cos_negrad;
     int x2, y2, min_x, max_x, min_y, max_y;
     unsigned char line_started;
-    uint16_t alpha; float rotation_rad;
+    uint16_t alpha;
+    float rotation_rad, tan_skew_x, tan_skew_y;
     int seconds;
     int frames_in_sec;
     // Initialize all waves and instruments first, for they don't need any extra data.
@@ -264,10 +265,13 @@ void daku_world_write(daku_world *world, const char *path)
                 anchor_px_y = m->anchor_y * m->content_height;
                 x0 = m->x - (anchor_px_x + m->content_start_x) * m->scale;
                 y0 = m->y - (anchor_px_y + m->content_start_y) * m->scale;
+                // Precalculate trigonometric values
                 rotation_rad = m->rotation * M_PI / 180.0;
                 if (fabs(rotation_rad) <= 1e-5) rotation_rad = 0;
                 sin_rad = sin(rotation_rad); cos_rad = cos(rotation_rad);
                 sin_negrad = -sin_rad; cos_negrad = cos_rad;
+                tan_skew_x = tan(m->skew_x * M_PI / 180.0);
+                tan_skew_y = tan(m->skew_y * M_PI / 180.0);
                 // The image range after scaling & rotating.
                 if (rotation_rad == 0) {
                     min_x = MAX(x0, 0); max_x = MIN(x0 + m->pict_width * m->scale, world->width);
@@ -301,11 +305,14 @@ void daku_world_write(daku_world *world, const char *path)
                         for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
                             x1 = anchor_px_x + m->content_start_x + (float)(x - m->x) / m->scale; \
+                            /* Skew. Reuse resource :D */ \
+                            x3[0] = x1 - y1 * tan_skew_x; \
+                            y3[0] = y1 - x1 * tan_skew_y; \
                             /* Rotate. */ \
                             if (rotation_rad == 0) { \
-                                x2 = x1; y2 = y1; \
+                                x2 = x3[0]; y2 = y3[0]; \
                             } else { \
-                                ROT(x2, y2, x1, y1, anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, sin_rad, cos_rad); \
+                                ROT(x2, y2, x3[0], y3[0], anchor_px_x + m->content_start_x, anchor_px_y + m->content_start_y, sin_rad, cos_rad); \
                             } \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 line_started = TRUE; \

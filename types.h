@@ -17,6 +17,7 @@ typedef struct __daku_matter {
     int pict_width, pict_height;
     float anchor_x, anchor_y;
     float x, y, rotation, scale;
+    float skew_x, skew_y;   // Shear angles in degrees
     int z_order;
     uint16_t opacity;
     unsigned char flipped_x, flipped_y;
