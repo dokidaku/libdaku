@@ -12,13 +12,17 @@ daku_action *daku_fx_fadein(float duration);
 daku_action *daku_fx_fadeout(float duration);
 
 daku_action *daku_fx_scaleto(float duration, float scale);
+daku_action *daku_fx_scaleby(float duration, float scale);
 
 daku_action *daku_fx_rotateto(float duration, float angle_deg);
+daku_action *daku_fx_rotateby(float duration, float angle_deg);
 
+daku_action *daku_fx_skewto(float duration, float x_angle, float y_angle);
 daku_action *daku_fx_skewby(float duration, float x_angle, float y_angle);
 
 // duang_instant.c
 daku_action *daku_fx_flip_x();
+daku_action *daku_fx_flip_y();
 
 // duang_audio.c
 daku_instrument *daku_audio_reverse(float duration);

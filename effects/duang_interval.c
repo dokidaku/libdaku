@@ -103,6 +103,19 @@ daku_action *daku_fx_scaleto(float duration, float scale)
     ret->end_scale = scale;
     return (daku_action *)ret;
 }
+int _daku_fx_scaleby_init(daku_action *action)
+{
+    struct __daku_fx_scale *ret = (struct __daku_fx_scale *)action;
+    ret->start_scale = action->target->scale;
+    ret->end_scale *= action->target->scale;
+    return 0;
+}
+daku_action *daku_fx_scaleby(float duration, float scale)
+{
+    daku_action *ret = daku_fx_scaleto(duration, scale);
+    ret->init = &_daku_fx_scaleby_init;
+    return ret;
+}
 
 typedef struct __daku_fx_scale __daku_fx_rotate;    // (/_<)
 #define start_angle start_scale                     // (/_<)
@@ -128,6 +141,19 @@ daku_action *daku_fx_rotateto(float duration, float angle_deg)
     ret->end_angle = angle_deg;
     return (daku_action *)ret;
 }
+int _daku_fx_rotateby_init(daku_action *action)
+{
+    __daku_fx_rotate *ret = (__daku_fx_rotate *)action;
+    ret->start_angle = action->target->rotation;
+    ret->end_angle += action->target->rotation;
+    return 0;
+}
+daku_action *daku_fx_rotateby(float duration, float angle_deg)
+{
+    daku_action *ret = (daku_action *)daku_fx_rotateto(duration, angle_deg);
+    ret->init = &_daku_fx_rotateby_init;
+    return ret;
+}
 
 typedef struct __daku_fx_move __daku_fx_skew;   // (/_<)
 void _daku_fx_skewby_update(daku_action *action, float progress)
@@ -148,4 +174,17 @@ daku_action *daku_fx_skewby(float duration, float x_angle, float y_angle)
     ret->x = x_angle;
     ret->y = y_angle;
     return (daku_action *)ret;
+}
+int _daku_fx_skewto_init(daku_action *action)
+{
+    __daku_fx_skew *ret = (__daku_fx_skew *)action;
+    ret->x -= action->target->skew_x;
+    ret->y -= action->target->skew_y;
+    return 0;
+}
+daku_action *daku_fx_skewto(float duration, float x_angle, float y_angle)
+{
+    daku_action *ret = daku_fx_skewby(duration, x_angle, y_angle);
+    ret->init = &_daku_fx_skewto_init;
+    return ret;
 }
