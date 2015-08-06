@@ -79,20 +79,23 @@ daku_action *daku_fx_fadeout(float duration)
 
 struct __daku_fx_scale {
     daku_action base;
-    float start_scale, end_scale;
+    float start_scale_x, end_scale_x;
+    float start_scale_y, end_scale_y;
 };
 void _daku_fx_scaleto_update(daku_action *action, float progress)
 {
     struct __daku_fx_scale *duang = (struct __daku_fx_scale *)action;
-    action->target->scale = duang->start_scale * (1 - progress) + duang->end_scale * progress;
+    action->target->scale_x = duang->start_scale_x * (1 - progress) + duang->end_scale_x * progress;
+    action->target->scale_y = duang->start_scale_y * (1 - progress) + duang->end_scale_y * progress;
 }
 int _daku_fx_scaleto_init(daku_action *action)
 {
     struct __daku_fx_scale *ret = (struct __daku_fx_scale *)action;
-    ret->start_scale = action->target->scale;
+    ret->start_scale_x = action->target->scale_x;
+    ret->start_scale_y = action->target->scale_y;
     return 0;
 }
-daku_action *daku_fx_scaleto(float duration, float scale)
+daku_action *daku_fx_scaleto(float duration, float scale_x, float scale_y)
 {
     struct __daku_fx_scale *ret =
         (struct __daku_fx_scale *)malloc(sizeof(struct __daku_fx_scale));
@@ -100,40 +103,45 @@ daku_action *daku_fx_scaleto(float duration, float scale)
     ret->base.initialized = ret->base.finalized = 0;
     ret->base.init = &_daku_fx_scaleto_init;
     ret->base.update = &_daku_fx_scaleto_update;
-    ret->end_scale = scale;
+    ret->end_scale_x = scale_x;
+    ret->end_scale_y = scale_y;
     return (daku_action *)ret;
 }
 int _daku_fx_scaleby_init(daku_action *action)
 {
     struct __daku_fx_scale *ret = (struct __daku_fx_scale *)action;
-    ret->start_scale = action->target->scale;
-    ret->end_scale *= action->target->scale;
+    ret->start_scale_x = action->target->scale_x;
+    ret->start_scale_y = action->target->scale_y;
+    ret->end_scale_x *= action->target->scale_x;
+    ret->end_scale_y *= action->target->scale_y;
     return 0;
 }
-daku_action *daku_fx_scaleby(float duration, float scale)
+daku_action *daku_fx_scaleby(float duration, float scale_x, float scale_y)
 {
-    daku_action *ret = daku_fx_scaleto(duration, scale);
+    daku_action *ret = daku_fx_scaleto(duration, scale_x, scale_y);
     ret->init = &_daku_fx_scaleby_init;
     return ret;
 }
 
-typedef struct __daku_fx_scale __daku_fx_rotate;    // (/_<)
-#define start_angle start_scale                     // (/_<)
-#define end_angle   end_scale                       // (/_<)
+struct __daku_fx_rotate {
+    daku_action base;
+    float start_angle, end_angle;
+};
 void _daku_fx_rotateto_update(daku_action *action, float progress)
 {
-    __daku_fx_rotate *duang = (__daku_fx_rotate *)action;
+    struct __daku_fx_rotate *duang = (struct __daku_fx_rotate *)action;
     action->target->rotation = duang->start_angle * (1 - progress) + duang->end_angle * progress;
 }
 int _daku_fx_rotateto_init(daku_action *action)
 {
-    __daku_fx_rotate *ret = (__daku_fx_rotate *)action;
+    struct __daku_fx_rotate *ret = (struct __daku_fx_rotate *)action;
     ret->start_angle = action->target->rotation;
     return 0;
 }
 daku_action *daku_fx_rotateto(float duration, float angle_deg)
 {
-    __daku_fx_rotate *ret = (__daku_fx_rotate *)malloc(sizeof(__daku_fx_rotate));
+    struct __daku_fx_rotate *ret =
+        (struct __daku_fx_rotate *)malloc(sizeof(struct __daku_fx_rotate));
     ret->base.duration = duration;
     ret->base.initialized = ret->base.finalized = 0;
     ret->base.init = &_daku_fx_rotateto_init;
@@ -143,7 +151,7 @@ daku_action *daku_fx_rotateto(float duration, float angle_deg)
 }
 int _daku_fx_rotateby_init(daku_action *action)
 {
-    __daku_fx_rotate *ret = (__daku_fx_rotate *)action;
+    struct __daku_fx_rotate *ret = (struct __daku_fx_rotate *)action;
     ret->start_angle = action->target->rotation;
     ret->end_angle += action->target->rotation;
     return 0;

@@ -19,7 +19,7 @@ daku_matter *daku_matter_create()
     ret->content_width = ret->content_height = ret->pict_width = ret->pict_height = 0;
     ret->anchor_x = ret->anchor_y = 0.5;
     ret->x = ret->y = ret->rotation = ret->skew_x = ret->skew_y = 0;
-    ret->scale = 1;
+    ret->scale_x = ret->scale_y = 1;
     ret->z_order = 0;
     ret->opacity = 65535;
     ret->flipped_x = ret->flipped_y = 0;
@@ -268,10 +268,14 @@ void daku_world_write(daku_world *world, const char *path)
                             ac->finalized = TRUE;
                         }
                     }
+                // Image processing order:
+                // > Scale
+                // > Skew
+                // > Rotate
                 anchor_px_x = m->anchor_x * m->content_width;
                 anchor_px_y = m->anchor_y * m->content_height;
-                x0 = m->x - (anchor_px_x + m->content_start_x) * m->scale;
-                y0 = m->y - (anchor_px_y + m->content_start_y) * m->scale;
+                x0 = m->x - (anchor_px_x + m->content_start_x) * m->scale_x;
+                y0 = m->y - (anchor_px_y + m->content_start_y) * m->scale_y;
                 // Precalculate trigonometric values
                 rotation_rad = m->rotation * M_PI / 180.0;
                 if (fabs(rotation_rad) <= 1e-5) rotation_rad = 0;
@@ -286,8 +290,8 @@ void daku_world_write(daku_world *world, const char *path)
                 // >  /         /
                 // > [0] ----- [3]
                 x3[0] = x3[1] = y3[0] = y3[3] = 0;
-                x3[3] = m->pict_width * m->scale;
-                y3[1] = m->pict_height * m->scale;
+                x3[3] = m->pict_width * m->scale_x;
+                y3[1] = m->pict_height * m->scale_y;
                 // > Skew. This code can be made more elegant.
                 x2 = x3[3] + y3[3] * tan_skew_x;
                 y2 = y3[3] + x3[3] * tan_skew_y;
@@ -299,8 +303,8 @@ void daku_world_write(daku_world *world, const char *path)
                 x3[2] = x3[3] + x3[1] - x3[0];
                 y3[2] = y3[3] + y3[1] - y3[0];
                 for (x = 0; x < 4; ++x) {
-                    x3[x] += x0 - anchor_px_y * tan_skew_x * m->scale;
-                    y3[x] += y0 - anchor_px_x * tan_skew_y * m->scale;
+                    x3[x] += x0 - anchor_px_y * tan_skew_x * m->scale_y;
+                    y3[x] += y0 - anchor_px_x * tan_skew_y * m->scale_x;
                 }
                 min_x = world->width; max_x = 0;
                 min_y = world->height; max_y = 0;
@@ -318,6 +322,11 @@ void daku_world_write(daku_world *world, const char *path)
                         ROT(x2, y2, x3[x], y3[x], m->x, m->y, sin_negrad, cos_negrad);
                         if (max_x < x2) max_x = x2; if (min_x > x2) min_x = x2;
                         if (max_y < y2) max_y = y2; if (min_y > y2) min_y = y2;
+                        // Uncomment to get debug information about bounds.
+                        // Marks the four vertices of the translated image.
+                        // for (x1 = x2 - 10; x1 <= x2 + 10; ++x1)
+                        //     for (y1 = y2 - 10; y1 <= y2 + 10; ++y1)
+                        //         ipict[(int)((world->height - y1 - 1) * world->width + x1) * 3 + 0] = 65535;
                     }
                     // Some crops may occur due to... precision limits...?
                     max_x += 5; min_x -= 5; max_y += 5; min_y -= 5;
@@ -328,11 +337,11 @@ void daku_world_write(daku_world *world, const char *path)
                 (__orig = (__orig * (65535 - alpha) + __new * alpha) / 65535)
             #define COPY_PICT(__fx, __fy) do { \
                     for (y = min_y; y < max_y; ++y) { \
-                        y1 = anchor_px_y + m->content_start_y + (float)(y - m->y) / m->scale; \
+                        y1 = anchor_px_y + m->content_start_y + (float)(y - m->y); \
                         line_started = 0; \
                         for (x = min_x; x < max_x; ++x) { \
                             /* Map the position (x, y) on the screen to (x1, y1) in the image. */ \
-                            x1 = anchor_px_x + m->content_start_x + (float)(x - m->x) / m->scale; \
+                            x1 = anchor_px_x + m->content_start_x + (float)(x - m->x); \
                             /* Rotate. */ \
                             if (rotation_rad == 0) { \
                                 x2 = x1; y2 = y1; \
@@ -349,6 +358,8 @@ void daku_world_write(daku_world *world, const char *path)
                             y3[0] = (y2 - x2 * tan_skew_y) / (1 - tan_skew_x * tan_skew_y); \
                             x2 = x3[0] + anchor_px_x; \
                             y2 = y3[0] + anchor_px_y; \
+                            x2 = anchor_px_x + (x2 - anchor_px_x) / m->scale_x; \
+                            y2 = anchor_px_y + (y2 - anchor_px_y) / m->scale_y; \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 ++line_started; \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \

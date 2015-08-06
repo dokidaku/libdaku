@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0.5, daku_fx_moveby(0.0001, 300, 300));
     daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
     daku_matter_act(m, 1, daku_fx_fadeto(4, 128));
-    daku_matter_act(m, 1, daku_fx_scaleto(4, 0.2));
+    daku_matter_act(m, 1, daku_fx_zoomto(2, 0.2));
+    daku_matter_act(m, 3, daku_fx_scaleto(2, 1, 3));
     daku_matter_act(m, 1, daku_fx_rotateto(4, 90));
     m->flipped_y = 1;
     m->flipped_x = 1;
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
     daku_matter_setanchor(m, 0, 1);
     daku_matter_setpos(m, 100, 500);
     daku_matter_act(m, 0, daku_image_clip(5, "xx.jpg"));
-    daku_matter_act(m, 0, daku_fx_scaleto(2, 2));
+    daku_matter_act(m, 0, daku_fx_zoomto(2, 2));
     daku_matter_act(m, 1, daku_fx_flip_x());
     daku_world_populate(world, m, 1, -1);
 
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_text(4,
         "Proudly powered by DOKIDAKU\nCC BY-NC-SA International 4.0\n大家好我是中文，我是中文", "xx.ttc",
         24, 0, DAKU_HALIGN_LEFT, 0xc0ffee));
+    daku_matter_act(m, 0, daku_fx_zoomto(2, 2));
     daku_matter_act(m, 0, daku_fx_fadein(0.5));
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
@@ -107,16 +109,13 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 2.5);
-    daku_matter_setanchor(m, 0.9, 0.2);
-    daku_matter_setsize(m, 200, 200);
+    daku_matter_setanchor(m, 0.5, 0.3);
+    daku_matter_setsize(m, 100, 100);
     daku_matter_setpos(m, 300, 300);
     daku_matter_act(m, 0, daku_image_clip(2, "xx.jpg"));
-    daku_matter_act(m, 0, daku_fx_skewby(0.5, 30, 0));
-    daku_matter_act(m, 0.5, daku_fx_skewto(0.5, 15, 15));
-    daku_matter_act(m, 1, daku_fx_rotateto(0.5, 45));
-    daku_matter_act(m, 1.5, daku_fx_rotateby(0.5, 75));
-    daku_matter_act(m, 1.5, daku_fx_scaleto(0.5, 2));
-    daku_matter_act(m, 2, daku_fx_scaleby(0.5, 0.5));
+    daku_matter_act(m, 0, daku_fx_scaleto(0.5, 1, 3));
+    daku_matter_act(m, 1, daku_fx_rotateby(1, 90));
+    daku_matter_act(m, 0, daku_fx_skewto(0.5, 30, 0));
     daku_world_populate(world, m, 12, -100);
 
     daku_world_write(world, argv[1]);
