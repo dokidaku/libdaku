@@ -343,12 +343,12 @@ void daku_world_write(daku_world *world, const char *path)
                             /* x3[0] + y3[0] * tan_skew_x = x1
                              * y3[0] + x3[0] * tan_skew_y = y1
                              *         x3[0] * tan_skew_y + y3[0] * tan_skew_x * tan_skew_y = x1 * tan_skew_y **/ \
-                            x2 -= anchor_px_x * m->scale; \
-                            y2 -= anchor_px_y * m->scale; \
+                            x2 -= anchor_px_x; \
+                            y2 -= anchor_px_y; \
                             x3[0] = (x2 - y2 * tan_skew_x) / (1 - tan_skew_x * tan_skew_y); \
                             y3[0] = (y2 - x2 * tan_skew_y) / (1 - tan_skew_x * tan_skew_y); \
-                            x2 = x3[0] + anchor_px_x * m->scale; \
-                            y2 = y3[0] + anchor_px_y * m->scale; \
+                            x2 = x3[0] + anchor_px_x; \
+                            y2 = y3[0] + anchor_px_y; \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 ++line_started; \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
