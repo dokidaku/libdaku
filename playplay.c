@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 200, 400);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 233, -40);
-    daku_matter_act(m, 0, daku_matter_shape(7, DAKU_SHAPE_RECT, 0x66ccff, 255));
+    daku_matter_act(m, 0, daku_matter_shape(7, DAKU_SHAPE_RECT, 0x66ccff, 128));
     daku_matter_act(m, 2, daku_fx_moveby(3, 233, 90));
     daku_matter_act(m, 6, daku_fx_moveby(0.5, 0, 350));
     daku_matter_act(m, 6.5, daku_fx_moveto(0.5, 0, 0));
@@ -30,12 +30,22 @@ int main(int argc, char *argv[])
 
     m = daku_matter_create();
     daku_matter_setlife(m, 9);
-    daku_matter_setsize(m, 300, 300);
+    daku_matter_setsize(m, 300, 200);
     daku_matter_setanchor(m, 1, 0);
     daku_matter_setpos(m, 600, 0);
-    daku_matter_act(m, 0, daku_matter_shape(9, DAKU_SHAPE_RECT, 0x99ffff, 128));
+    daku_matter_act(m, 0, daku_matter_shape(9, DAKU_SHAPE_ELLIPSE, 0x99ffff, 255));
     daku_matter_act(m, 0, daku_fx_freeze());
     daku_world_populate(world, m, 4, 0);
+
+    m = daku_matter_create();
+    daku_matter_setlife(m, 5);
+    daku_matter_setsize(m, 2, 2);
+    daku_matter_setanchor(m, 1, 0);
+    daku_matter_setpos(m, 600, 300);
+    daku_matter_act(m, 0, daku_matter_shape(5, DAKU_SHAPE_RECT, 0xffffff, 255));
+    daku_matter_act(m, 0, daku_fx_scaleto(3, 300, 1));
+    daku_matter_act(m, 0, daku_fx_freeze());
+    daku_world_populate(world, m, 2, 0);
 
     m = daku_matter_create();
     daku_matter_setlife(m, 5);

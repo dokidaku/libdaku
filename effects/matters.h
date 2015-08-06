@@ -6,7 +6,7 @@
 // shape.c
 enum daku_shape_type {
     DAKU_SHAPE_RECT,
-    DAKU_SHAPE_CIRCLE,
+    DAKU_SHAPE_ELLIPSE,
     DAKU_SHAPE_POLYGON
 };
 daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int colour, int opacity);
