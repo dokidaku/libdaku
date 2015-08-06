@@ -26,6 +26,9 @@ daku_action *daku_fx_skewby(float duration, float x_angle, float y_angle);
 daku_action *daku_fx_flip_x();
 daku_action *daku_fx_flip_y();
 
+daku_action *daku_fx_freeze();
+daku_action *daku_fx_thaw();
+
 // duang_audio.c
 daku_instrument *daku_audio_reverse(float duration);
 

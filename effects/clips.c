@@ -95,6 +95,7 @@ daku_action *daku_video_clip(const char *path, float start_time, float duration)
         (struct __daku_video_clip *)malloc(sizeof(struct __daku_video_clip));
     ret->base.duration = duration >= 0 ? duration : -duration;
     ret->base.initialized = ret->base.finalized = 0;
+    ret->base.is_clip = 1;
     ret->base.init = &_daku_video_clip_init;
     ret->base.update = &_daku_video_clip_update;
     ret->path = path;
@@ -142,6 +143,7 @@ daku_action *daku_image_clip(float duration, const char *path)
         (struct __daku_image_clip *)malloc(sizeof(struct __daku_image_clip));
     ret->base.duration = duration;
     ret->base.initialized = ret->base.finalized = 0;
+    ret->base.is_clip = 1;
     ret->base.init = &_daku_image_clip_init;
     ret->base.update = &_daku_image_clip_update;
     ret->path = path;
@@ -329,6 +331,7 @@ daku_action *daku_text(float duration, const char *text,
         (struct __daku_text_clip *)malloc(sizeof(struct __daku_text_clip));
     ret->base.duration = duration;
     ret->base.initialized = ret->base.finalized = 0;
+    ret->base.is_clip = 1;
     ret->base.init = &_daku_text_clip_init;
     ret->base.update = &_daku_text_clip_update;
     ret->text_len = strlen(text);

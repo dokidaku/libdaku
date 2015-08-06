@@ -22,7 +22,7 @@ daku_matter *daku_matter_create()
     ret->scale_x = ret->scale_y = 1;
     ret->z_order = 0;
     ret->opacity = 65535;
-    ret->flipped_x = ret->flipped_y = 0;
+    ret->flipped_x = ret->flipped_y = ret->is_frozen = FALSE;
     ret->actions = daku_list_create(NULL);
     return ret;
 }
@@ -254,7 +254,8 @@ void daku_world_write(daku_world *world, const char *path)
             daku_list_foreach_t(presenters, daku_matter *, m) if (m) {
                 daku_list_foreach_t(m->actions, daku_action *, ac)
                     if (ac && m->start_time + ac->start_time <= cur_time &&
-                        (m->start_time + ac->start_time + ac->duration >= cur_time || !ac->finalized))
+                        (m->start_time + ac->start_time + ac->duration >= cur_time || !ac->finalized) &&
+                        !(m->is_frozen && ac->is_clip))
                     {
                         if (!ac->initialized) {
                             ac->initialized = TRUE;

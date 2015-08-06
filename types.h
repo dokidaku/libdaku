@@ -17,10 +17,11 @@ typedef struct __daku_matter {
     int pict_width, pict_height;
     float anchor_x, anchor_y;
     float x, y, rotation, scale_x, scale_y;
-    float skew_x, skew_y;   // Shear angles in degrees
+    float skew_x, skew_y;   /**< Shear angles in degrees */
     int z_order;
     uint16_t opacity;
     unsigned char flipped_x, flipped_y;
+    unsigned is_frozen;     /**< Whether the picture is frozen */
     uint16_t *picture;
     daku_list/* struct __daku_action */ *actions;
 } daku_matter;
@@ -34,6 +35,7 @@ typedef struct __daku_action {
     struct __daku_matter *target;
     float start_time, duration;
     unsigned char initialized, finalized;
+    unsigned char is_clip;                  /**< Will not be updated if is_clip and the target is frozen */
     daku_action_init_func init;
     daku_action_update_func update;
 } daku_action;

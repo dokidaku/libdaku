@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     daku_matter_setanchor(m, 1, 0);
     daku_matter_setpos(m, 600, 0);
     daku_matter_act(m, 0, daku_matter_shape(9, DAKU_SHAPE_RECT, 0x99ffff, 128));
+    daku_matter_act(m, 0, daku_fx_freeze());
     daku_world_populate(world, m, 4, 0);
 
     m = daku_matter_create();
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 1, daku_fx_zoomto(2, 0.2));
     daku_matter_act(m, 3, daku_fx_scaleto(2, 1, 3));
     daku_matter_act(m, 1, daku_fx_rotateto(4, 90));
+    daku_matter_act(m, 1, daku_fx_freeze());
+    daku_matter_act(m, 4, daku_fx_thaw());
     m->flipped_y = 1;
     m->flipped_x = 1;
     daku_world_populate(world, m, 0, 6);
@@ -74,6 +77,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_image_clip(5, "xx.jpg"));
     daku_matter_act(m, 0, daku_fx_zoomto(2, 2));
     daku_matter_act(m, 1, daku_fx_flip_x());
+    daku_matter_act(m, 0, daku_fx_freeze());
     daku_world_populate(world, m, 1, -1);
 
     m = daku_matter_create();
@@ -89,6 +93,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
     daku_matter_act(m, 1, daku_fx_skewby(3, 45, 0));
+    daku_matter_act(m, 0, daku_fx_freeze());
     m->opacity = 0;
     daku_world_populate(world, m, 0, 0);
 
@@ -104,6 +109,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 3.5, daku_fx_fadeout(0.5));
     daku_matter_act(m, 0, daku_fx_moveby(4, -30, 0));
     daku_matter_act(m, 1, daku_fx_rotateto(3, -45));
+    daku_matter_act(m, 0, daku_fx_freeze());
     m->opacity = 0;
     daku_world_populate(world, m, 0, 0);
 
@@ -116,6 +122,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_fx_scaleto(0.5, 1, 3));
     daku_matter_act(m, 1, daku_fx_rotateby(1, 90));
     daku_matter_act(m, 0, daku_fx_skewto(0.5, 30, 0));
+    daku_matter_act(m, 0, daku_fx_freeze());
     daku_world_populate(world, m, 12, -100);
 
     daku_world_write(world, argv[1]);
