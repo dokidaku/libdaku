@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     daku_matter_setanchor(m, 1, 0);
     daku_matter_setpos(m, 600, 300);
     daku_matter_act(m, 0, daku_matter_shape(5, DAKU_SHAPE_RECT, 0xffffff, 255));
-    daku_matter_act(m, 0, daku_fx_scaleto(3, 300, 1));
+    daku_matter_act(m, 0, daku_ease_quad_inout(daku_fx_scaleto(3, 300, 1)));
     daku_matter_act(m, 0, daku_fx_freeze());
     daku_world_populate(world, m, 2, 0);
 
