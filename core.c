@@ -185,6 +185,7 @@ void daku_world_write(daku_world *world, const char *path)
             (int)m->content_width, (int)m->content_height,
             (int)m->pict_width, (int)m->pict_height);
         printf("(%f, %f), rotation %f\n\n", m->x, m->y, m->rotation);
+        daku_list_foreach_t(m->actions, daku_action *, ac) if (ac) printf("Action 0x%x\n", ac);
     }
     daku_list/* struct __daku_matter */ *presenters = daku_list_create(NULL);
     int event_count, next_event_idx = 0;
