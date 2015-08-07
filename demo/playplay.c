@@ -1,6 +1,15 @@
 #include "../daku.h"
 #include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <libavformat/avformat.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 int main(int argc, char *argv[])
 {

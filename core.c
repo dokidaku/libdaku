@@ -123,28 +123,46 @@ typedef struct __daku_world_event {
     unsigned char type;
     void *target;
 } _daku_world_event;
-int _daku_world_event_cmp(const void *a, const void *b)
-{
+
+#ifdef __cplusplus
+int _daku_world_event_cmp(const _daku_world_event &a, const _daku_world_event &b) {
+    static float ta, tb;
+    ta = a.time;
+    tb = b.time;
+    return ta < tb ? -1 : (ta == tb ? 0 : 1);
+}
+#else
+int _daku_world_event_cmp(const void *a, const void *b) {
     static float ta, tb;
     ta = ((_daku_world_event *)a)->time;
     tb = ((_daku_world_event *)b)->time;
     return ta < tb ? -1 : (ta == tb ? 0 : 1);
 }
-_daku_world_event *_daku_world_make_events(daku_world *world, int *evncnt)
-{
+#endif
+
+_daku_world_event *_daku_world_make_events(daku_world *world, int *evncnt) {
     *evncnt = (world->population->length - 1) * 2;
     int i = -1;
     _daku_world_event *ret = (_daku_world_event *)malloc(*evncnt * sizeof(_daku_world_event));
     // Generate events
     daku_matter *m;
     daku_list_foreach_t(world->population, daku_matter *, m) if (m) {
+#ifdef __cplusplus
+        ret[++i] = _daku_world_event{ m->start_time, DAKU_WORLD_EVENT_ENTER, m };
+        ret[++i] = _daku_world_event{ m->start_time + m->life_time, DAKU_WORLD_EVENT_EXIT, m };
+#else
         ret[++i] = (_daku_world_event){ m->start_time, DAKU_WORLD_EVENT_ENTER, m };
         ret[++i] = (_daku_world_event){ m->start_time + m->life_time, DAKU_WORLD_EVENT_EXIT, m };
+#endif
     }
     // We have to ensure that two matters of same z-orders are sorted by arrival.
     // Therefore a stable sorting algorithm must be applied. Use merge sort.
     // XXX: Will quicksort work?
+#ifdef __cplusplus
+    std::stable_sort(ret, ret + *evncnt, _daku_world_event_cmp);
+#else
     mergesort(ret, *evncnt, sizeof(_daku_world_event), &_daku_world_event_cmp);
+#endif
     return ret;
 }
 

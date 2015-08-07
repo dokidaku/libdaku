@@ -1,10 +1,18 @@
 #ifndef __FRAME_PUSHER_H__
 #define __FRAME_PUSHER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 typedef struct __frame_pusher {
     AVFormatContext *fmt_ctx;

@@ -3,6 +3,14 @@
 
 #include "../types.h"
 
+#ifndef M_PI
+#define M_PI       3.14159265358979323846  /* pi */
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2 (M_PI / 2)
+#endif
+
 #define DAKU_EASE_DEF_ARG0(__name) daku_action *daku_ease_##__name(daku_action *inner)
 #define DAKU_EASE_DEF_ARG1(__name) daku_action *daku_ease_##__name(daku_action *inner, float arg1)
 

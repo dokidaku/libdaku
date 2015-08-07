@@ -1,0 +1,10 @@
+## .gitignore by Github and merged by SkyZH
+
+# CMake
+
+[Bb]uild/
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+cmake_install.cmake
+install_manifest.txt

@@ -1,5 +1,12 @@
 #include "frame-puller.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <libavutil/opt.h>
+#ifdef __cplusplus
+}
+#endif
 
 // Internally-used function
 // Create a new frame_puller struct and open the given file.
@@ -210,13 +217,15 @@ read_again:
 
     return 0;
 }
-
+#include <stdio.h>
 int frame_puller_seek_timestamp(frame_puller *fp, int64_t timestamp, unsigned char precise)
 {
     if (timestamp < 0) timestamp = 0;
     int ret;
     if ((ret = av_seek_frame(fp->fmt_ctx, fp->target_stream_idx, timestamp, AVSEEK_FLAG_BACKWARD)) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking: %s\n", av_err2str(ret));
+        char buf[4096];
+        av_strerror(ret, buf, sizeof(buf));
+        av_log(NULL, AV_LOG_ERROR, "FFmpeg internal error while seeking: %s\n", buf);
         return ret;
     }
     if (fp->type == FRAME_PULLER_VIDEO) {

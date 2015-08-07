@@ -3,6 +3,9 @@
 
 #include "types.h"
 
+#ifdef __cplusplus
+#include <algorithm>
+#endif
 // Video part
 daku_matter *daku_matter_create();
 void daku_matter_setlife(daku_matter *m, float life_time);

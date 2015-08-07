@@ -44,7 +44,7 @@ void _daku_tr_erase_circle_update(daku_action *action, float progress)
 {
     daku_matter *target = action->target;
     uint16_t opacity = ((struct __daku_transition *)action)->opacity;
-    float radius = sqrt(target->pict_width * target->pict_width + target->pict_height * target->pict_height) * 0.5 * progress;
+    float radius = sqrt((double)(target->pict_width * target->pict_width + target->pict_height * target->pict_height)) * 0.5 * progress;
     int x, y, x1, x2, y1, y2;
     float yy, rr;
     y1 = MAX(0, target->pict_height / 2 - radius);

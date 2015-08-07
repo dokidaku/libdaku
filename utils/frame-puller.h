@@ -1,10 +1,16 @@
 #ifndef __FRAME_PULLER_H__
 #define __FRAME_PULLER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
+#ifdef __cplusplus
+}
+#endif
 
 enum frame_puller_type {
     FRAME_PULLER_AUDIO,

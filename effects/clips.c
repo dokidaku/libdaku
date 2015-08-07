@@ -1,10 +1,26 @@
 #include "clips.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <libavformat/avformat.h>
-#include "../utils/frame-puller.h"
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <ftbitmap.h>
+
+
+
+
+#include "../utils/frame-puller.h"
+
+
 
 // It's uncommon that one video has more than 80 fps.
 #define BUF_FRAME_COUNT 320
@@ -48,11 +64,19 @@ void _daku_video_clip_update(daku_action *action, float progress)
                 frame_puller_next_frame(duang->puller, NULL);
                 if (duang->buffered_frames[++duang->last_buf_frame_idx].data)
                     free(duang->buffered_frames[duang->last_buf_frame_idx].data);
+#ifdef __cplusplus
                 duang->buffered_frames[duang->last_buf_frame_idx]
-                    = (struct __daku_video_clip_buf_frame) {
+                    = __daku_video_clip::__daku_video_clip_buf_frame {
                         duang->puller->frame->pts, (uint8_t *)malloc(duang->puller->frame->linesize[0] * duang->vid_height),
                         duang->puller->frame->linesize[0]
                     };
+#else
+                duang->buffered_frames[duang->last_buf_frame_idx]
+                    = (struct __daku_video_clip_buf_frame) {
+                    duang->puller->frame->pts, (uint8_t *)malloc(duang->puller->frame->linesize[0] * duang->vid_height),
+                    duang->puller->frame->linesize[0]
+                };
+#endif
                 memcpy(duang->buffered_frames[duang->last_buf_frame_idx].data,
                     duang->puller->frame->data[0],
                     duang->puller->frame->linesize[0] * duang->vid_height);
