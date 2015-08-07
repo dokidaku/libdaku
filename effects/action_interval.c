@@ -1,4 +1,4 @@
-#include "duang.h"
+#include "actions.h"
 #include <stdlib.h>
 
 struct __daku_fx_move {

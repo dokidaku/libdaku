@@ -1,4 +1,4 @@
-#include "duang.h"
+#include "actions.h"
 #include <stdlib.h>
 
 int _daku_audio_reverse_init(daku_instrument *instrument)

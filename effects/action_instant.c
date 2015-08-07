@@ -1,4 +1,4 @@
-#include "duang.h"
+#include "actions.h"
 #include <stdlib.h>
 
 daku_action *daku_fx_instant(daku_action_update_func update)

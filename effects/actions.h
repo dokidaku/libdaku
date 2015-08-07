@@ -1,9 +1,9 @@
-#ifndef __DAKU_DUANG_H__
-#define __DAKU_DUANG_H__
+#ifndef __DAKU_ACTIONS_H__
+#define __DAKU_ACTIONS_H__
 
 #include "../types.h"
 
-// duang_interval.c
+// action_interval.c
 daku_action *daku_fx_moveby(float duration, float dx, float dy);    // d stands for delta
 daku_action *daku_fx_moveto(float duration, float dx, float dy);    // d stands for destination
 
@@ -22,14 +22,14 @@ daku_action *daku_fx_rotateby(float duration, float angle_deg);
 daku_action *daku_fx_skewto(float duration, float x_angle, float y_angle);
 daku_action *daku_fx_skewby(float duration, float x_angle, float y_angle);
 
-// duang_instant.c
+// action_instant.c
 daku_action *daku_fx_flip_x();
 daku_action *daku_fx_flip_y();
 
 daku_action *daku_fx_freeze();
 daku_action *daku_fx_thaw();
 
-// duang_audio.c
+// audio.c
 daku_instrument *daku_audio_reverse(float duration);
 
 #endif

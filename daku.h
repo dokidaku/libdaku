@@ -4,8 +4,8 @@
 #include "types.h"
 #include "core.h"
 
-#include "effects/matters.h"
-#include "effects/duang.h"
+#include "effects/drawing.h"
+#include "effects/actions.h"
 #include "effects/clips.h"
 #include "effects/ease.h"
 

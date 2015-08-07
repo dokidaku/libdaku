@@ -1,22 +1,22 @@
-#include "matters.h"
+#include "drawing.h"
 #include <math.h>
 #include <stdlib.h>
 
-struct __daku_matter_shape {
+struct __daku_shape {
     daku_action base;
     enum daku_shape_type type;
     uint16_t r, g, b, a;
 };
 
-void _daku_matter_shape_update(daku_action *action, float progress)
+void _daku_shape_update(daku_action *action, float progress)
 {
     int i, j, w = action->target->pict_width, h = action->target->pict_height;
     float cur_y, x_range, x_start, x_end;
-    int r = ((struct __daku_matter_shape *)action)->r,
-        g = ((struct __daku_matter_shape *)action)->g,
-        b = ((struct __daku_matter_shape *)action)->b,
-        a = ((struct __daku_matter_shape *)action)->a;
-    switch (((struct __daku_matter_shape *)action)->type) {
+    int r = ((struct __daku_shape *)action)->r,
+        g = ((struct __daku_shape *)action)->g,
+        b = ((struct __daku_shape *)action)->b,
+        a = ((struct __daku_shape *)action)->a;
+    switch (((struct __daku_shape *)action)->type) {
         case DAKU_SHAPE_RECT:
             for (i = 0; i < h; ++i)
                 for (j = 0; j < w; ++j) {
@@ -44,14 +44,14 @@ void _daku_matter_shape_update(daku_action *action, float progress)
     }
 }
 
-daku_action *daku_matter_shape(float duration, enum daku_shape_type type, int colour, int opacity)
+daku_action *daku_shape(float duration, enum daku_shape_type type, int colour, int opacity)
 {
-    struct __daku_matter_shape *ret =
-        (struct __daku_matter_shape *)malloc(sizeof(struct __daku_matter_shape));
+    struct __daku_shape *ret =
+        (struct __daku_shape *)malloc(sizeof(struct __daku_shape));
     ret->base.duration = duration;
     ret->base.initialized = 0;
     ret->base.is_clip = 1;
-    ret->base.update = _daku_matter_shape_update;
+    ret->base.update = _daku_shape_update;
     ret->type = type;
     ret->r = (colour & 0xff0000) >> 8;
     ret->g = colour & 0x00ff00;
