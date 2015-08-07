@@ -73,7 +73,6 @@ void _daku_video_clip_update(daku_action *action, float progress)
             action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 0] = frame_pict[y * subscript_inc + x * 3 + 0];
             action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 1] = frame_pict[y * subscript_inc + x * 3 + 1];
             action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 2] = frame_pict[y * subscript_inc + x * 3 + 2];
-            action->target->picture[(((duang->vid_height - y - 1) * duang->vid_width + x) << 2) + 3] = 65535;
         }
 }
 int _daku_video_clip_init(daku_action *action)
@@ -87,6 +86,11 @@ int _daku_video_clip_init(daku_action *action)
     ret->vid_width = ret->puller->output_width;
     ret->vid_height = ret->puller->output_height;
     if (ret->reversed) memset(ret->buffered_frames, 0, sizeof ret->buffered_frames);
+    // Set the whole picture to be opaque
+    int x, y;
+    for (y = 0; y < ret->vid_height; ++y)
+        for (x = 0; x < ret->vid_width; ++x)
+            action->target->picture[(((ret->vid_height - y - 1) * ret->vid_width + x) << 2) + 3] = 65535;
     return 0;
 }
 daku_action *daku_video_clip(const char *path, float start_time, float duration)

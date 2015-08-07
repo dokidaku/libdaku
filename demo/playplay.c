@@ -1,4 +1,4 @@
-#include "xx.h"
+#include "../daku.h"
 #include <stdio.h>
 #include <libavformat/avformat.h>
 
@@ -53,6 +53,9 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 300, 200);
     daku_matter_setpos(m, 300, 300);
     daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
+    daku_matter_act(m, 2, daku_ease_quad_in(daku_tr_erase_l(0.5, 0)));
+    daku_matter_act(m, 3, daku_ease_quad_out(daku_tr_erase_l(0.5, 255)));
+    daku_matter_act(m, 2, daku_ease_sine_out(daku_tr_erase_circle(1, 0)));
     daku_world_populate(world, m, 0, 6);
 
     w = daku_wave_create();

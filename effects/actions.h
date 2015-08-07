@@ -29,6 +29,11 @@ daku_action *daku_fx_flip_y();
 daku_action *daku_fx_freeze();
 daku_action *daku_fx_thaw();
 
+// transition.c
+// TODO: Add an angle parameter
+daku_action *daku_tr_erase_l(float duration, uint8_t opacity);
+daku_action *daku_tr_erase_circle(float duration, uint8_t opacity);
+
 // audio.c
 daku_instrument *daku_audio_reverse(float duration);
 
