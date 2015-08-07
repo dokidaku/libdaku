@@ -80,12 +80,12 @@ void daku_wave_play(daku_wave *w, float start_time, daku_instrument *instrument)
     daku_list_push_back(w->instruments, instrument);
 }
 
-daku_world *daku_world_create(int width, int height, float duration)
+daku_world *daku_world_create(int width, int height, float duration, int fps, int sample_rate)
 {
     daku_world *ret = (daku_world *)malloc(sizeof(daku_world));
     ret->width = width; ret->height = height;
-    ret->fps = 30;
-    ret->sample_rate = 11025;
+    ret->fps = fps > 0 ? fps : 30;
+    ret->sample_rate = sample_rate > 0 ? sample_rate : 11025;
     ret->duration = duration;
     ret->population = daku_list_create(NULL);
     ret->clangs = daku_list_create(NULL);

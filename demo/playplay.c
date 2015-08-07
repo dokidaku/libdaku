@@ -10,8 +10,7 @@ int main(int argc, char *argv[])
         return 888;
     }
     av_register_all();
-    daku_world *world = daku_world_create(600, 600, 15);
-    world->sample_rate = 44100;
+    daku_world *world = daku_world_create(600, 600, 15, 30, 44100);
     daku_matter *m;
     daku_wave *w;
 
