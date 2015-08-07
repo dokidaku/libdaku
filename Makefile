@@ -34,29 +34,19 @@ clean:
 	rm -f demo/playplay
 
 # Installation-related stuff
-INSTALL = install -p
-INSTALL_EXEC = $(INSTALL) -m 0755
-INSTALL_DATA = $(INSTALL) -m 0644
-#
-# If you don't have "install" you can use "cp" instead.
-# INSTALL = cp -p
-# INSTALL_EXEC = $(INSTALL)
-# INSTALL_DATA = $(INSTALL)
-
 INSTALL_LOC_INCLUDE = /usr/local/include/libdaku
 INSTALL_LOC_LIB = /usr/local/lib
 INSTALL_DIRS = $(INSTALL_LOC_INCLUDE) $(INSTALL_LOC_LIB) \
 	$(INSTALL_LOC_INCLUDE)/effects $(INSTALL_LOC_INCLUDE)/utils
 
-INSTALL_INCLUDE = daku.h effects/actions.h effects/clips.h effects/drawing.h \
-	effects/ease.h utils/frame-puller.h utils/frame-pusher.h utils/list.h \
-	core.h types.h
 INSTALL_LIB = libdaku.a
 
 install:
 	mkdir -p $(INSTALL_DIRS)
-	$(INSTALL_DATA) $(INSTALL_INCLUDE) $(INSTALL_LOC_INCLUDE)
-	$(INSTALL_DATA) $(INSTALL_LIB) $(INSTALL_LOC_LIB)
+	cp effects/*.h $(INSTALL_LOC_INCLUDE)/effects
+	cp utils/*.h $(INSTALL_LOC_INCLUDE)/utils
+	cp *.h $(INSTALL_LOC_INCLUDE)
+	cp $(INSTALL_LIB) $(INSTALL_LOC_LIB)
 
 uninstall:
 	rm -rf $(INSTALL_LOC_INCLUDE)

@@ -1,6 +1,8 @@
 #ifndef __LIBDAKU_H__
 #define __LIBDAKU_H__
 
+#include <libavformat/avformat.h>
+
 #include "types.h"
 #include "core.h"
 

@@ -123,7 +123,7 @@ typedef struct __daku_world_event {
     unsigned char type;
     void *target;
 } _daku_world_event;
-int _daku_world_event_cmp(void *a, void *b)
+int _daku_world_event_cmp(const void *a, const void *b)
 {
     static float ta, tb;
     ta = ((_daku_world_event *)a)->time;
