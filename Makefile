@@ -1,0 +1,33 @@
+objects = core.o \
+	utils/frame-puller.o utils/frame-pusher.o utils/list.o \
+	effects/action_instant.o effects/action_interval.o effects/audio.o \
+	effects/clips.o effects/drawing.o effects/ease.o effects/transition.o
+
+lib_args = `pkg-config --cflags --libs libavformat libswscale libswresample` `freetype-config --cflags` -lfreetype
+
+libdaku: $(objects)
+	ar rcs libdaku.a $(objects)
+
+core.o: core.h utils/frame-pusher.h types.h
+utils/frame-puller.o: utils/frame-puller.h
+utils/frame-pusher.o: utils/frame-pusher.h
+utils/list.o: utils/list.h
+effects/action_instant.o: effects/actions.h types.h
+effects/action_interval.o: effects/actions.h types.h
+effects/audio.o: effects/actions.h types.h
+effects/clips.o: effects/actions.h utils/frame-puller.h types.h
+	cc -c -o effects/clips.o effects/clips.c $(lib_args)
+effects/drawing.o: effects/drawing.h types.h
+effects/ease.o: effects/ease.h types.h
+effects/transition.o: effects/actions.h types.h
+
+playplay: libdaku demo/playplay.c
+	cc -o demo/playplay demo/playplay.c libdaku.a $(lib_args)
+
+.PHONY: clean
+clean:
+	rm -f effects/*.o
+	rm -f utils/*.o
+	rm -f *.o
+	rm -f libdaku.a
+	rm -f demo/playplay
