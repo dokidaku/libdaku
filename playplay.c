@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     daku_matter *m;
     daku_wave *w;
 
-    /*m = daku_matter_create();
+    m = daku_matter_create();
     daku_matter_setlife(m, 7);
     daku_matter_setsize(m, 200, 400);
     daku_matter_setanchor(m, 0, 0);
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_matter_shape(9, DAKU_SHAPE_ELLIPSE, 0x99ffff, 255));
     daku_matter_act(m, 3, daku_ease_sine_in(daku_fx_rotateby(3, 90)));
     daku_matter_act(m, 0, daku_fx_freeze());
-    daku_world_populate(world, m, 4, 0);*/
+    daku_world_populate(world, m, 4, 0);
 
     m = daku_matter_create();
     daku_matter_setlife(m, 5);
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_video_clip("xx.mp4", 3, 5));
     daku_world_populate(world, m, 0, 6);
 
-    /*w = daku_wave_create();
+    w = daku_wave_create();
     daku_wave_setlife(w, 15);
     daku_wave_play(w, 0, daku_audio_clip("xx.mp3", 180, 15));
     daku_wave_play(w, 0, daku_audio_reverse(15));
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 1, daku_fx_rotateby(1, 90));
     daku_matter_act(m, 0, daku_fx_skewto(0.5, 30, 0));
     daku_matter_act(m, 0, daku_fx_freeze());
-    daku_world_populate(world, m, 12, -100);*/
+    daku_world_populate(world, m, 12, -100);
 
     daku_world_write(world, argv[1]);
 

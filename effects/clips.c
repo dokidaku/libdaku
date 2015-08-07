@@ -223,6 +223,10 @@ void _daku_text_clip_update(daku_action *action, float progress)
     bitmap.buffer =
         (unsigned char *)malloc(action->target->pict_width * action->target->pict_height * 2);
     memset(duang->line_buffer, 0, w * h * 2);
+    // Load a space first to prevent weird behaviour (incorrect bitmap for the first word)
+    // TODO: Find the reason... and perhaps get rid of this
+    FT_Load_Char(duang->ft_face, ' ', FT_LOAD_RENDER);
+    FT_Bitmap_Convert(duang->ft_lib, &duang->ft_face->glyph->bitmap, &bitmap, 1);
 
     pen_y = -duang->line_height;    // Padding to prevent the last line from being cut
     for (i = 0; i < duang->text_len; ++i)
