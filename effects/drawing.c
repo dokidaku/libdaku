@@ -51,6 +51,7 @@ daku_action *daku_shape(float duration, enum daku_shape_type type, int colour, i
     ret->base.duration = duration;
     ret->base.initialized = 0;
     ret->base.is_clip = 1;
+    ret->base.init = NULL;
     ret->base.update = _daku_shape_update;
     ret->type = type;
     ret->r = (colour & 0xff0000) >> 8;
