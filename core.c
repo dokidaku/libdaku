@@ -311,8 +311,8 @@ void daku_world_write(daku_world *world, const char *path)
                 x3[2] = x3[3] + x3[1] - x3[0];
                 y3[2] = y3[3] + y3[1] - y3[0];
                 for (x = 0; x < 4; ++x) {
-                    x3[x] += x0 - anchor_px_y * tan_skew_x * m->scale_y;
-                    y3[x] += y0 - anchor_px_x * tan_skew_y * m->scale_x;
+                    x3[x] += x0 - (anchor_px_y + m->content_start_y) * tan_skew_x * m->scale_y;
+                    y3[x] += y0 - (anchor_px_x + m->content_start_x) * tan_skew_y * m->scale_x;
                 }
                 min_x = world->width; max_x = 0;
                 min_y = world->height; max_y = 0;
@@ -360,14 +360,14 @@ void daku_world_write(daku_world *world, const char *path)
                             /* x3[0] + y3[0] * tan_skew_x = x1
                              * y3[0] + x3[0] * tan_skew_y = y1
                              *         x3[0] * tan_skew_y + y3[0] * tan_skew_x * tan_skew_y = x1 * tan_skew_y **/ \
-                            x2 -= anchor_px_x; \
-                            y2 -= anchor_px_y; \
+                            x2 -= anchor_px_x + m->content_start_x; \
+                            y2 -= anchor_px_y + m->content_start_y; \
                             x3[0] = (x2 - y2 * tan_skew_x) / (1 - tan_skew_x * tan_skew_y); \
                             y3[0] = (y2 - x2 * tan_skew_y) / (1 - tan_skew_x * tan_skew_y); \
-                            x2 = x3[0] + anchor_px_x; \
-                            y2 = y3[0] + anchor_px_y; \
-                            x2 = anchor_px_x + (x2 - anchor_px_x) / m->scale_x; \
-                            y2 = anchor_px_y + (y2 - anchor_px_y) / m->scale_y; \
+                            x2 = x3[0] + anchor_px_x + m->content_start_x; \
+                            y2 = y3[0] + anchor_px_y + m->content_start_y; \
+                            x2 = anchor_px_x + m->content_start_x + (x2 - anchor_px_x - m->content_start_x) / m->scale_x; \
+                            y2 = anchor_px_y + m->content_start_y + (y2 - anchor_px_y - m->content_start_y) / m->scale_y; \
                             if (x2 >= 0 && x2 < m->pict_width && y2 >= 0 && y2 < m->pict_height) { \
                                 ++line_started; \
                                 alpha = m->picture[((__fy) * (int)m->pict_width + (__fx)) * 4 + 3] * m->opacity / 65535; \
