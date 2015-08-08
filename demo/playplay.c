@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 150, 150);
     daku_matter_setanchor(m, 0, 1);
     daku_matter_setpos(m, 100, 500);
-    daku_matter_act(m, 0, daku_image_clip(5, "xx.jpg"));
+    daku_matter_act(m, 0, daku_image_clip(5, "xx.png"));
     daku_matter_act(m, 0, daku_fx_zoomto(2, 2));
     daku_matter_act(m, 1, daku_fx_flip_x());
     daku_matter_act(m, 0, daku_fx_freeze());

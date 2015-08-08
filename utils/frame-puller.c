@@ -58,6 +58,8 @@ int _frame_puller_init(frame_puller *fp, enum AVMediaType media_type)
     }
     fp->codec_ctx = avcodec_alloc_context3(fp->codec);
     if ((ret = avcodec_copy_context(fp->codec_ctx, fp->fmt_ctx->streams[i]->codec)) < 0) return ret;
+    // NOTE: See issue #5 and https://trac.ffmpeg.org/ticket/4404
+    fp->codec_ctx->thread_count = fp->fmt_ctx->streams[i]->codec->thread_count = 1;
     if ((ret = avcodec_open2(fp->codec_ctx, fp->codec, NULL)) < 0) return ret;
     // Allocate a frame to store the read data
     fp->orig_frame = av_frame_alloc();

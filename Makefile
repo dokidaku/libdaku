@@ -16,7 +16,7 @@ utils/list.o: utils/list.h
 effects/action_instant.o: effects/actions.h types.h
 effects/action_interval.o: effects/actions.h types.h
 effects/audio.o: effects/actions.h types.h
-effects/clips.o: effects/actions.h utils/frame-puller.h types.h
+effects/clips.o: effects/clips.c effects/actions.h utils/frame-puller.h types.h
 	cc -c -o effects/clips.o effects/clips.c $(lib_args)
 effects/drawing.o: effects/drawing.h types.h
 effects/ease.o: effects/ease.h types.h
