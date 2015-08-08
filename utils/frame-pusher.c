@@ -65,7 +65,7 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
 #ifdef __cplusplus
     fp->vid_stream->codec->time_base = fp->vid_stream->time_base = AVRational{1, vid_framerate};
 #else
-    fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){1, vid_framerate};#endif
+    fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){1, vid_framerate};
 #endif
     // >> Enable experimental codecs such as AAC
     fp->aud_stream->codec->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
