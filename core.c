@@ -49,6 +49,15 @@ void daku_matter_setpos(daku_matter *m, float x, float y)
 {
     m->x = x; m->y = y;
 }
+void daku_matter_setopacity(daku_matter *m, uint8_t opacity)
+{
+    m->opacity = (float)opacity / 255.0 * 65535.0;
+}
+void daku_matter_setscale(daku_matter *m, float scale_x, float scale_y)
+{
+    m->scale_x = scale_x;
+    m->scale_y = scale_y;
+}
 void daku_matter_act(daku_matter *m, float start_time, daku_action *action)
 {
     action->start_time = start_time;

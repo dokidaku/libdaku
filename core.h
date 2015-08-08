@@ -13,6 +13,9 @@ void daku_matter_setsize(daku_matter *m, float width, float height);
 void daku_matter_setgrosssize(daku_matter *m, float nw, float nh, float gw, float gh);
 void daku_matter_setanchor(daku_matter *m, float ax, float ay);
 void daku_matter_setpos(daku_matter *m, float x, float y);
+void daku_matter_setopacity(daku_matter *m, uint8_t opacity);
+void daku_matter_setscale(daku_matter *m, float scale_x, float scale_y);
+#define daku_matter_setzoom(__m, __s) daku_matter_setscale((__m), (__s), (__s))
 void daku_matter_act(daku_matter *m, float start_time, daku_action *action);
 void daku_matter_init(daku_matter *m);
 

@@ -28,11 +28,11 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 200, 400);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 233, -40);
+    daku_matter_setopacity(m, 64);
     daku_matter_act(m, 0, daku_shape(7, DAKU_SHAPE_RECT, 0x66ccff, 128));
     daku_matter_act(m, 2, daku_fx_moveby(3, 233, 90));
     daku_matter_act(m, 6, daku_fx_moveby(0.5, 0, 350));
     daku_matter_act(m, 6.5, daku_fx_moveto(0.5, 0, 0));
-    m->opacity = 64;
     daku_matter_act(m, 0, daku_fx_fadein(2));
     daku_world_populate(world, m, 5, 0);
 
@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
     daku_matter_setsize(m, 400, 272);
     daku_matter_setanchor(m, 0, 0);
     daku_matter_setpos(m, 100, 100);
+    daku_matter_setopacity(m, 0);
     daku_matter_act(m, 0, daku_text(4,
         "Proudly powered by DOKIDAKU\nCC BY-NC-SA International 4.0\n大家好我是中文，我是中文", "xx.ttc",
         24, 0, DAKU_HALIGN_LEFT, 0xc0ffee));
@@ -107,7 +108,6 @@ int main(int argc, char *argv[])
     daku_matter_act(m, 0, daku_fx_moveby(4, 0, 40));
     daku_matter_act(m, 1, daku_fx_skewby(3, 45, 0));
     daku_matter_act(m, 0, daku_fx_freeze());
-    m->opacity = 0;
     daku_world_populate(world, m, 0, 0);
 
     m = daku_matter_create();
