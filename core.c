@@ -60,6 +60,7 @@ void daku_matter_init(daku_matter *m)
 {
     // All matters use RGBA format
     m->picture = (uint16_t *)malloc(m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
+    memset(m->picture, 0, m->pict_width * m->pict_height * 4 * sizeof(uint16_t));
 }
 
 daku_wave *daku_wave_create()
