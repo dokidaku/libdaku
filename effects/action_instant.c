@@ -47,10 +47,6 @@ daku_action *daku_fx_thaw()
     return daku_fx_instant(&_daku_fx_thaw_update);
 }
 
-struct __daku_fx_setpixopacity {
-    daku_action base;
-    uint16_t opacity;
-};
 void _daku_fx_setpixopacity_update(daku_action *action, float progress)
 {
     daku_matter *target = action->target;
@@ -67,4 +63,10 @@ daku_action *daku_fx_setpixopacity(uint8_t opacity)
     ret = realloc(ret, sizeof(struct __daku_fx_setpixopacity));
     ret->opacity = (float)opacity / 255.0 * 65535.0;
     return (daku_action *)ret;
+}
+daku_action *daku_fx_setpixopacitycont(float duration, uint8_t opacity)
+{
+    daku_action *ret = daku_fx_setpixopacity(opacity);
+    ret->duration = duration;
+    return ret;
 }

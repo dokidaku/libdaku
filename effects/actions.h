@@ -3,6 +3,11 @@
 
 #include "../types.h"
 
+struct __daku_fx_setpixopacity {
+    daku_action base;
+    uint16_t opacity;
+};
+
 // action_interval.c
 daku_action *daku_fx_moveby(float duration, float dx, float dy);    // d stands for delta
 daku_action *daku_fx_moveto(float duration, float dx, float dy);    // d stands for destination
@@ -30,6 +35,7 @@ daku_action *daku_fx_freeze();
 daku_action *daku_fx_thaw();
 
 daku_action *daku_fx_setpixopacity(uint8_t opacity);
+daku_action *daku_fx_setpixopacitycont(float duration, uint8_t opacity);    // Not instant but grouped
 
 // transition.c
 // TODO: Add an angle parameter
