@@ -21,7 +21,7 @@ void _daku_tr_erase_l_update(daku_action *action, float progress)
     float last_progress = ((struct __daku_transition *)action)->last_progress;
     uint16_t opacity = ((struct __daku_transition *)action)->opacity;
     int x, y;
-    for (x = last_progress * target->pict_width; x < progress * target->pict_width; ++x)
+    for (x = 0; x < progress * target->pict_width; ++x)
         for (y = 0; y < target->pict_height; ++y)
             target->picture[y * target->pict_width * 4 + x * 4 + 3] = opacity;
     ((struct __daku_transition *)action)->last_progress = progress;
@@ -35,7 +35,7 @@ daku_action *daku_tr_erase_l(float duration, uint8_t opacity)
     ret->base.is_clip = 1;
     ret->base.init = NULL;
     ret->base.update = &_daku_tr_erase_l_update;
-    ret->opacity = opacity << 8;
+    ret->opacity = (float)opacity / 255.0 * 65535.0;
     ret->last_progress = 0;
     return (daku_action *)ret;
 }

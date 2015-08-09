@@ -29,6 +29,8 @@ daku_action *daku_fx_flip_y();
 daku_action *daku_fx_freeze();
 daku_action *daku_fx_thaw();
 
+daku_action *daku_fx_setpixopacity(uint8_t opacity);
+
 // transition.c
 // TODO: Add an angle parameter
 daku_action *daku_tr_erase_l(float duration, uint8_t opacity);

@@ -46,3 +46,25 @@ daku_action *daku_fx_thaw()
 {
     return daku_fx_instant(&_daku_fx_thaw_update);
 }
+
+struct __daku_fx_setpixopacity {
+    daku_action base;
+    uint16_t opacity;
+};
+void _daku_fx_setpixopacity_update(daku_action *action, float progress)
+{
+    daku_matter *target = action->target;
+    uint16_t opacity = ((struct __daku_fx_setpixopacity *)action)->opacity;
+    int x, y;
+    for (x = 0; x < target->pict_width; ++x)
+        for (y = 0; y < target->pict_height; ++y)
+            target->picture[y * target->pict_width * 4 + x * 4 + 3] = opacity;
+}
+daku_action *daku_fx_setpixopacity(uint8_t opacity)
+{
+    struct __daku_fx_setpixopacity *ret =
+        (struct __daku_fx_setpixopacity *)daku_fx_instant(&_daku_fx_setpixopacity_update);
+    ret = realloc(ret, sizeof(struct __daku_fx_setpixopacity));
+    ret->opacity = (float)opacity / 255.0 * 65535.0;
+    return (daku_action *)ret;
+}
