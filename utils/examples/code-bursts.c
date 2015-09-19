@@ -1,17 +1,19 @@
 // Example for frame_pusher: a pure-code-generated video
 // $ gcc code-bursts.c ../frame-pusher.c -o code-bursts `pkg-config --cflags --libs libavformat libswscale libswresample`
 
+#include <time.h>
 #include "../frame-pusher.h"
 // Ensure VID_HEIGHT > VID_DUR * VID_FRATE since the sweeping line in the video
 // moves down one pixel each frame...
-#define VID_WIDTH  640
-#define VID_HEIGHT 400
+#define VID_WIDTH  1280
+#define VID_HEIGHT 720
 #define VID_DUR    10
 #define VID_FRATE  30
 #define AUD_SRATE  44100
 
 int main(int argc, char *argv[])
 {
+    int start_time = time(0);
     if (argc < 2) {
         printf("Code-based video generating based on frame pullers & pushers\n");
         printf("Usage: %s <output>\n", argv[0]);
@@ -29,7 +31,8 @@ int main(int argc, char *argv[])
 
     uint8_t *picture;
     // The buffer size needs to be multiplied by 3 because the format is RGB24
-    int linesize = VID_WIDTH * 3 * sizeof(uint8_t);
+    // NOTE: libswscale crashes (on my machine) when the linesize is 1280 * 3 * sizeof(uint8_t)...?
+    int linesize = VID_WIDTH * 3 * sizeof(uint8_t) + 128;
     int bufsize = VID_HEIGHT * linesize;
     picture = (uint8_t *)av_malloc(bufsize);
 
@@ -75,5 +78,8 @@ int main(int argc, char *argv[])
 
     // Release resources
     frame_pusher_close(pusher);
+
+    printf("User time: %.2f s\n", (double)clock() / CLOCKS_PER_SEC);
+    printf("Real time: ~%ld s\n", time(0) - start_time);
     return 0;
 }

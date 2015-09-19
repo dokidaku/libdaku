@@ -135,7 +135,6 @@ int frame_pusher_write_video(frame_pusher *fp, uint8_t *rgb_data, int linesize, 
     static uint8_t *rgb_data_array[4];
     static int linesize_array[4];
     rgb_data_array[0] = rgb_data;
-    rgb_data_array[1] = (uint8_t *)av_malloc(linesize_array[0] * 1000);
     linesize_array[0] = linesize;
 
     //if ((ret = av_frame_make_writable(fp->vid_frame)) < 0) return ret;
