@@ -211,9 +211,11 @@ int _frame_pusher_write_audio_frame(frame_pusher *fp)
 
 int frame_pusher_write_audio(frame_pusher *fp, int16_t lch, int16_t rch)
 {
-    int idx = (fp->nb_aud_buffered_samples++) << 2;
-    *(int16_t *)&fp->aud_buf->data[0][idx + 0] = lch;
-    *(int16_t *)&fp->aud_buf->data[0][idx + 2] = rch;
+    static int16_t *buf_ptr;
+    int idx = (fp->nb_aud_buffered_samples++) << 1;
+    buf_ptr = (int16_t *)(fp->aud_buf->data[0]);
+    buf_ptr[idx] = lch;
+    buf_ptr[idx + 1] = rch;
     if (fp->nb_aud_buffered_samples == fp->nb_aud_samples_per_frame) {
         fp->nb_aud_buffered_samples = 0;
         return _frame_pusher_write_audio_frame(fp);

@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     int nb_frames_read = 0, nb_samples_read = 0;
     int i;
     unsigned char has_video = 1, has_audio = 1, catches;
+    int16_t *lch_ptr, *rch_ptr;
     if (start_time) {
         frame_puller_seek(puller_a, start_time, 1);
         frame_puller_seek(puller_v, start_time, 1);
@@ -59,14 +60,14 @@ int main(int argc, char *argv[])
         if (has_video && (catches || !has_audio)) {
             if (frame_puller_next_frame(puller_a, &frame) >= 0) {
                 nb_samples_read += frame->nb_samples;
-                for (i = 0; i < frame->nb_samples; ++i)
-                    if ((ret = frame_pusher_write_audio(pusher,
-                        *(int16_t *)&frame->data[0][i + i + 1],
-                        *(int16_t *)&frame->data[puller_a->codec_ctx->channels >= 2 ? 1 : 0][i + i + 1])) < 0)
-                    {
+                lch_ptr = (int16_t *)(frame->data[0]);
+                rch_ptr = (int16_t *)(frame->data[puller_a->codec_ctx->channels >= 2 ? 1 : 0]);
+                for (i = 0; i < frame->nb_samples; ++i) {
+                    if ((ret = frame_pusher_write_audio(pusher, lch_ptr[i], rch_ptr[i])) < 0) {
                         av_log(NULL, AV_LOG_ERROR, "Failed to write one of the samples. Quitting T^T\n");
                         return ret;
                     }
+                }
             } else has_video = 0;
         } else if (has_audio && (!catches || !has_video)) {
             if (frame_puller_next_frame(puller_v, &frame) >= 0) {
