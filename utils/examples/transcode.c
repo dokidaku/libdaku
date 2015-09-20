@@ -1,11 +1,13 @@
 // Example for frame_puller and frame_pusher: video converting / transcoding
 // $ gcc transcode.c ../frame-puller.c ../frame-pusher.c -o transcode `pkg-config --cflags --libs libavformat libswscale libswresample`
 
+#include <time.h>
 #include "../frame-puller.h"
 #include "../frame-pusher.h"
 
 int main(int argc, char *argv[])
 {
+    int prog_start_time = time(0);
     if (argc < 3) {
         printf("Video converting based on frame pullers & pushers\n");
         printf("Usage: %s <input> <output> [<start_time> [<frame_rate> [<sample_rate> [<bit_rate>]]]]\n", argv[0]);
@@ -75,6 +77,7 @@ int main(int argc, char *argv[])
                     return ret;
                 }
             } else has_audio = 0;
+            // if (nb_frames_read >= 500) break;
         }
     } while (has_video || has_audio);
     printf("Total video frames: %d\nTotal audio samples: %d\n", nb_frames_read, nb_samples_read);
@@ -83,5 +86,8 @@ int main(int argc, char *argv[])
     frame_puller_free(puller_v);
     frame_puller_free(puller_a);
     frame_pusher_close(pusher);
+
+    printf("User time: %.2f s\n", (double)clock() / CLOCKS_PER_SEC);
+    printf("Real time: ~%ld s\n", time(0) - prog_start_time);
     return 0;
 }

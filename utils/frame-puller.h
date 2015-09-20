@@ -34,11 +34,6 @@ typedef struct __frame_puller {
     uint8_t *pict_buf;
     AVFrame *orig_frame;            /**< The last pulled frame. */
     AVFrame *frame;                 /**< The converted frame. */
-#define FRAME_PULLER_BUF_COUNT 8
-    // The reason we use buffered frames here
-    // is that the input is sorted by DTS instead of PTS.
-    // We'll sort them by PTS again. PTS's are often nearly sorted so we just buffer a few frames.
-    AVFrame *buffered_frame[FRAME_PULLER_BUF_COUNT];
     // Output samples = input samples * sample_scale_rate
     double sample_scale_rate;
     int output_sample_rate;
