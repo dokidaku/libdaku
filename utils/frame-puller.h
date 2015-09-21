@@ -91,6 +91,12 @@ int frame_puller_seek(frame_puller *fp, float time, unsigned char precise);
 int frame_puller_seek_timestamp(frame_puller *fp, int64_t timestamp, unsigned char precise);
 
 /**
+ * Get the
+ *
+ */
+float frame_puller_last_time(frame_puller *fp);
+
+/**
  * Free a frame_puller struct and all resources it used.
  *
  * @param[in] fp  The pointer to the struct to be freed.

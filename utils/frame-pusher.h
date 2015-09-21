@@ -28,7 +28,7 @@ typedef struct __frame_pusher {
     // The packet needn't be freed before reading the first packet.
     unsigned char first_packet;
     AVPacket packet;    /**< The last written packet. */
-    int last_aud_pts, last_vid_pts;
+    int64_t last_aud_pts, last_vid_pts;
     int nb_aud_buffered_samples, nb_aud_samples_per_frame;
 } frame_pusher;
 

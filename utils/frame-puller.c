@@ -106,6 +106,9 @@ int frame_puller_open_audio(frame_puller **o_fp, const char *path, int output_sa
     // > Fully initialize the SwrContext
     if ((ret = swr_init(fp->libsw.swr_ctx)) < 0) return ret;
 
+    // For use in @ref frame_puller_last_time.
+    fp->frame->pts = -233333;
+
     *o_fp = fp;
     return 0;
 }
@@ -133,6 +136,9 @@ int frame_puller_open_video(frame_puller **o_fp, const char *path, int output_wi
         SWS_BILINEAR, NULL, NULL, NULL);
     fp->pict_buf = (uint8_t *)av_malloc(fp->pict_bufsize);
     avpicture_fill((AVPicture *)fp->frame, fp->pict_buf, fp->pix_fmt, fp->output_width, fp->output_height);
+
+    // For use in @ref frame_puller_last_time.
+    fp->frame->pts = -233333;
 
     *o_fp = fp;
     return 0;
@@ -199,6 +205,12 @@ int frame_puller_seek(frame_puller *fp, float time, unsigned char precise)
 {
     AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
     return frame_puller_seek_timestamp(fp, (int64_t)(time * (float)tb->den / (float)tb->num), precise);
+}
+
+float frame_puller_last_time(frame_puller *fp)
+{
+    AVRational *tb = &fp->fmt_ctx->streams[fp->target_stream_idx]->time_base;
+    return fp->frame->pts * (float)tb->num / (float)tb->den;
 }
 
 void frame_puller_free(frame_puller *fp)
