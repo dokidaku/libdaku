@@ -11,8 +11,8 @@ extern "C" {
 #define DAKU_NOPACKETSWRITTEN 2333333
 
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
-    int aud_samplerate,
-    int vid_framerate, int width, int height, int vid_bitrate)
+    int aud_samplerate, AVRational vid_framerate,
+    int width, int height, int vid_bitrate)
 {
     *o_fp = NULL;
     int ret;
@@ -58,7 +58,7 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->vid_stream->codec->bit_rate = vid_bitrate > 0 ? vid_bitrate : 1200000;
     fp->vid_stream->codec->pix_fmt = AV_PIX_FMT_YUV420P;
     fp->vid_stream->codec->gop_size = 24;
-    fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){1, vid_framerate};
+    fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){vid_framerate.den, vid_framerate.num};
     // >> Enable experimental codecs such as AAC
     fp->aud_stream->codec->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
     fp->vid_stream->codec->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;

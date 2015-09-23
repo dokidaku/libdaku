@@ -45,8 +45,8 @@ typedef struct __frame_pusher {
  * @return 0 if succeeded, a negative error code otherwise.
  */
 int frame_pusher_open(frame_pusher **o_fp, const char *path,
-    int aud_samplerate,
-    int vid_framerate, int width, int height, int vid_bitrate);
+    int aud_samplerate, AVRational vid_framerate,
+    int width, int height, int vid_bitrate);
 
 /**
  * Write one frame of video to the output.

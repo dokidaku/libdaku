@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
         return ret;
     }
     frame_pusher *pusher;
-    if ((ret = frame_pusher_open(&pusher, argv[2], puller_a->output_sample_rate, frame_rate,
+    if ((ret = frame_pusher_open(&pusher, argv[2],
+        puller_a->output_sample_rate, (AVRational){frame_rate, 1},
         puller_v->output_width, puller_v->output_height, bit_rate)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "Cannot initialize the output file\n");

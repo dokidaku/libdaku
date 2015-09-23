@@ -33,14 +33,14 @@ int World::writeToFile(const char *path)
     int ret;
     frame_pusher *pusher = NULL;
     if ((ret = frame_pusher_open(&pusher, path,
-        _sample_rate, _frame_rate_num / _frame_rate_deno,
+        _sample_rate, (AVRational){_frame_rate_num, _frame_rate_deno},
         _width, _height, 0)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "daku: Cannot initialize output file\n");
         return ret;
     }
 
-    for (int i = 0; i < _duration * (_frame_rate_num / _frame_rate_deno); ++i) {
+    for (int i = 0; i < _duration * _frame_rate_num / _frame_rate_deno; ++i) {
         uint8_t *frame = this->getFrame(i);
         frame_pusher_write_video(pusher, frame, _width * 3, 1);
     }

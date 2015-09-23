@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     int ret;
     frame_pusher *pusher;
-    if ((ret = frame_pusher_open(&pusher, argv[1], AUD_SRATE, VID_FRATE, VID_WIDTH, VID_HEIGHT, 800000)) < 0) {
+    if ((ret = frame_pusher_open(&pusher, argv[1], AUD_SRATE, (AVRational){VID_FRATE, 1}, VID_WIDTH, VID_HEIGHT, 800000)) < 0) {
         av_log(NULL, AV_LOG_ERROR, "Cannot open output\n");
         return ret;
     }
