@@ -6,4 +6,10 @@
 #include "utils/frame-pusher.h"
 #include "base/World.h"
 
+namespace daku {
+
+void bigBang();
+
+}
+
 #endif
