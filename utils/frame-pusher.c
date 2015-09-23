@@ -46,11 +46,7 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->aud_stream->codec->sample_fmt = fp->aud_stream->codec->codec->sample_fmts[0];
     fp->aud_stream->codec->channel_layout = AV_CH_LAYOUT_STEREO;
     fp->aud_stream->codec->channels = 2;
-#ifdef __cplusplus
-    fp->aud_stream->codec->time_base = fp->aud_stream->time_base = AVRational{1, aud_samplerate};
-#else
     fp->aud_stream->codec->time_base = fp->aud_stream->time_base = (AVRational){1, aud_samplerate};
-#endif
     // >> The video stream
     AVCodec *vid_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     fp->vid_stream = avformat_new_stream(fp->fmt_ctx, vid_codec);
@@ -62,11 +58,7 @@ int frame_pusher_open(frame_pusher **o_fp, const char *path,
     fp->vid_stream->codec->bit_rate = vid_bitrate > 0 ? vid_bitrate : 1200000;
     fp->vid_stream->codec->pix_fmt = AV_PIX_FMT_YUV420P;
     fp->vid_stream->codec->gop_size = 24;
-#ifdef __cplusplus
-    fp->vid_stream->codec->time_base = fp->vid_stream->time_base = AVRational{1, vid_framerate};
-#else
     fp->vid_stream->codec->time_base = fp->vid_stream->time_base = (AVRational){1, vid_framerate};
-#endif
     // >> Enable experimental codecs such as AAC
     fp->aud_stream->codec->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
     fp->vid_stream->codec->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
