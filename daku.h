@@ -5,6 +5,8 @@
 #include "utils/frame-puller.h"
 #include "utils/frame-pusher.h"
 #include "base/World.h"
+#include "base/Node.h"
+#include "base/Clip.h"
 
 namespace daku {
 

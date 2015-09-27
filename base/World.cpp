@@ -15,14 +15,15 @@ World::World(int width, int height, float duration,
 {
 }
 
+void World::putBoard(Clip *clip)
+{
+    this->_clip = clip;
+}
+
 uint8_t *World::getFrame(int frameIdx)
 {
-    static uint8_t *p = NULL;
-    if (p) free(p);
-    p = (uint8_t *)malloc(_width * (_height + 1) * 3);
-    memset(p, 0, _width * _height * 3);
-    memset(p + (rand() % _height) * _width * 3, 255, _width * 3);
-    return p;
+    this->_clip->update((float)frameIdx * _frame_rate_deno / _frame_rate_num);
+    return this->_clip->getPicture();
 }
 
 int World::writeToFile(const char *path)
