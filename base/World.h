@@ -12,7 +12,7 @@ namespace daku {
 class World {
 public:
     World(int width, int height, float duration,
-        int frame_rate_num = 30, int frame_rate_deno = 1, int sample_rate = 44100);
+        int frameRateNum = 30, int frameRateDeno = 1, int sampleRate = 44100);
     ~World();
 
     void putBoard(Clip *clip);
@@ -23,8 +23,8 @@ public:
 protected:
     int _width, _height;
     float _duration;
-    int _frame_rate_num, _frame_rate_deno;
-    int _sample_rate;
+    int _frameRateNum, _frameRateDeno;
+    int _sampleRate;
 
     // Will be replaced later by an std::vector.
     Clip *_clip;

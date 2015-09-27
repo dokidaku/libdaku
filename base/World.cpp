@@ -8,10 +8,10 @@ extern "C" {
 namespace daku {
 
 World::World(int width, int height, float duration,
-    int frame_rate_num, int frame_rate_deno, int sample_rate)
+    int frameRateNum, int frameRateDeno, int sampleRate)
 : _width(width), _height(height), _duration(duration),
-  _frame_rate_num(frame_rate_num), _frame_rate_deno(frame_rate_deno),
-  _sample_rate(sample_rate)
+  _frameRateNum(frameRateNum), _frameRateDeno(frameRateDeno),
+  _sampleRate(sampleRate)
 {
 }
 
@@ -22,7 +22,7 @@ void World::putBoard(Clip *clip)
 
 uint8_t *World::getFrame(int frameIdx)
 {
-    this->_clip->update((float)frameIdx * _frame_rate_deno / _frame_rate_num);
+    this->_clip->update((float)frameIdx * _frameRateDeno / _frameRateNum);
     return this->_clip->getPicture();
 }
 
@@ -34,14 +34,14 @@ int World::writeToFile(const char *path)
     int ret;
     frame_pusher *pusher = NULL;
     if ((ret = frame_pusher_open(&pusher, path,
-        _sample_rate, (AVRational){_frame_rate_num, _frame_rate_deno},
+        _sampleRate, (AVRational){_frameRateNum, _frameRateDeno},
         _width, _height, 0)) < 0)
     {
         av_log(NULL, AV_LOG_ERROR, "daku: Cannot initialize output file\n");
         return ret;
     }
 
-    for (int i = 0; i < _duration * _frame_rate_num / _frame_rate_deno; ++i) {
+    for (int i = 0; i < _duration * _frameRateNum / _frameRateDeno; ++i) {
         uint8_t *frame = this->getFrame(i);
         frame_pusher_write_video(pusher, frame, _width * 3, 1);
     }
