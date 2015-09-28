@@ -15,6 +15,8 @@ World::World(int width, int height, float duration,
   _clip(nullptr), _swsCtx(nullptr), _pictBuf(nullptr), _pictBufLineSize(0)
 {
     this->_pictBufLineSize = width * 3;
+    if (this->_pictBufLineSize & 63)
+        this->_pictBufLineSize = ((this->_pictBufLineSize >> 6) + 1) << 6;
     this->_pictBuf = (uint8_t *)malloc(height * this->_pictBufLineSize);
 }
 
@@ -39,10 +41,10 @@ uint8_t *World::getFrame(int frameIdx)
     if (this->_clip->getWidth() == _width && this->_clip->getHeight() == _height) {
         return this->_clip->getPicture();
     } else {
-        static const uint8_t *inPictArr[8] = { 0 };
-        static uint8_t *outPictArr[8] = { 0 };
-        static int inLineSizeArr[8] = { 0 };
-        static int outLineSizeArr[8] = { 0 };
+        static const uint8_t *inPictArr[4] = { 0 };
+        static uint8_t *outPictArr[4] = { 0 };
+        static int inLineSizeArr[4] = { 0 };
+        static int outLineSizeArr[4] = { 0 };
         inPictArr[0] = this->_clip->getPicture();
         outPictArr[0] = this->_pictBuf;
         inLineSizeArr[0] = this->_clip->getLineSize();
@@ -71,7 +73,7 @@ int World::writeToFile(const char *path)
 
     for (int i = 0; i < _duration * _frameRateNum / _frameRateDeno; ++i) {
         uint8_t *frame = this->getFrame(i);
-        frame_pusher_write_video(pusher, frame, _width * 3, 1);
+        frame_pusher_write_video(pusher, frame, this->_pictBufLineSize, 1);
     }
     frame_pusher_close(pusher);
 

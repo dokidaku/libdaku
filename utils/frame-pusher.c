@@ -124,8 +124,8 @@ int frame_pusher_write_video(frame_pusher *fp, uint8_t *rgb_data, int linesize, 
     if (!fp->first_packet) av_free_packet(&fp->packet);
     else fp->first_packet = 0;
 
-    static uint8_t *rgb_data_array[4];
-    static int linesize_array[4];
+    static uint8_t *rgb_data_array[4] = { 0 };
+    static int linesize_array[4] = { 0 };
     rgb_data_array[0] = rgb_data;
     linesize_array[0] = linesize;
 
