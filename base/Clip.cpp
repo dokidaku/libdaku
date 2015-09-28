@@ -18,6 +18,13 @@ void Clip::update(float time)
     int whiteHeight = time / this->_lifeTime * this->_height;
     if (whiteHeight > this->_height) whiteHeight = this->_height;
     memset(this->_picture, 255, whiteHeight * _width * 3);
+    static int noisePosition;
+    for (int i = 0; i < 20; ++i) {
+        noisePosition = rand() % (_width * _height);
+        this->_picture[noisePosition * 3 + 0] = rand() & 255;
+        this->_picture[noisePosition * 3 + 1] = rand() & 255;
+        this->_picture[noisePosition * 3 + 2] = rand() & 255;
+    }
 }
 
 void Clip::init(int width, int height, float lifeTime)

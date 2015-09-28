@@ -4,6 +4,7 @@
 
 extern "C" {
 #include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
 }
 #include "./Clip.h"
 
@@ -20,6 +21,8 @@ public:
     uint8_t *getFrame(int frameIdx);
     int writeToFile(const char *path);
 
+    friend class Node;
+
 protected:
     int _width, _height;
     float _duration;
@@ -28,6 +31,10 @@ protected:
 
     // Will be replaced later by an std::vector.
     Clip *_clip;
+    // For scaling the contents of the board to fit the output.
+    struct SwsContext *_swsCtx;
+    uint8_t *_pictBuf;
+    int _pictBufLineSize;
 };
 
 }
