@@ -7,6 +7,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 #include "./Clip.h"
+#include <utility>
+#include <vector>
 
 namespace daku {
 
@@ -29,10 +31,21 @@ protected:
     int _frameRateNum, _frameRateDeno;
     int _sampleRate;
 
-    // Will be replaced later by an std::vector.
-    Clip *_clip;
-    // For scaling the contents of the board to fit the output.
-    struct SwsContext *_swsCtx;
+    //typedef std::tuple<float, Clip *, struct SwsContext *> boardData;
+    // TODO: Add transitions
+    struct boardData {
+        float startTime;
+        Clip *clip;
+        // For scaling the contents of the board to fit the output.
+        struct SwsContext *swsCtx;
+    };
+    static inline bool boardDataTimeCmp(boardData &lhs, boardData &rhs) {
+        return lhs.startTime < rhs.startTime;
+    }
+    typedef std::vector<boardData> boardList;
+    boardList _boards;
+    float _boardsTotalLen;
+    boardList::iterator _curClipItr;
     uint8_t *_pictBuf;
     int _pictBufLineSize;
 };

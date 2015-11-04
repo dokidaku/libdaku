@@ -19,7 +19,7 @@ void Node::init()
     this->_zOrder = 0;
     this->_x = this->_y = 0;
     this->_ax = this->_ay = 0.5;
-    this->_startTime = this->_lifeTime = 0;
+    this->_lifeTime = 0;
     this->_parent = NULL;
     this->_picture = NULL;
 }

@@ -33,7 +33,7 @@ protected:
     int _width, _height;
     int _zOrder;
     double _x, _y, _ax, _ay;
-    float _startTime, _lifeTime;
+    float _lifeTime;
     std::vector<Node *> _children;
     Node *_parent;
 

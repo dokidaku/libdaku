@@ -5,8 +5,12 @@ int main()
 {
     daku::bigBang();
     daku::World *world = new daku::World(1280, 720, 5, 30000, 1001);    // 29.97 fps
-    daku::Clip *clip = new daku::Clip(320, 240, 4);
-    world->putBoard(clip);
+    daku::Clip *clip_1 = new daku::Clip(320, 240, 1);
+    world->putBoard(clip_1);
+    daku::Clip *clip_2 = new daku::Clip(640, 180, 2);
+    world->putBoard(clip_2);
+    daku::Clip *clip_3 = new daku::Clip(30, 20, 1);
+    world->putBoard(clip_3);
     world->writeToFile("1.mp4");
     return 0;
 }
