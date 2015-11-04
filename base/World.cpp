@@ -12,7 +12,7 @@ World::World(int width, int height, float duration,
 : _width(width), _height(height), _duration(duration),
   _frameRateNum(frameRateNum), _frameRateDeno(frameRateDeno),
   _sampleRate(sampleRate),
-  _clip(nullptr), _swsCtx(nullptr), _pictBuf(nullptr), _pictBufLineSize(0)
+  _clip(NULL), _swsCtx(NULL), _pictBuf(NULL), _pictBufLineSize(0)
 {
     this->_pictBufLineSize = width * 3;
     if (this->_pictBufLineSize & 63)
