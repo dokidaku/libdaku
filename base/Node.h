@@ -39,6 +39,7 @@ protected:
 
     bool _hasPicture;
     uint8_t *_picture;
+    uint8_t *_pictAlpha;
     int _lineSize;
 };
 

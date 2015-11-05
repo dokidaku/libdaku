@@ -13,6 +13,7 @@ public:
     ~Clip();
 
     virtual void init(int width, int height, float lifeTime = 0);
+    virtual void prepare();
     void update(float time);
     // virtual void update(float time) = 0;
 
