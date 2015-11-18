@@ -46,7 +46,8 @@ protected:
     boardList _boards;
     float _boardsTotalLen;
     boardList::iterator _curClipItr;
-    uint8_t *_pictBuf, *_pictBuf2;
+    uint8_t *_pictBuf;
+    uint16_t *_pictBuf2;
     int _pictBufLineSize;
 };
 

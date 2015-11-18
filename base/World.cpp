@@ -17,7 +17,7 @@ World::World(int width, int height, float duration,
     if (this->_pictBufLineSize & 63)
         this->_pictBufLineSize = ((this->_pictBufLineSize >> 6) + 1) << 6;
     this->_pictBuf = (uint8_t *)malloc(height * this->_pictBufLineSize);
-    this->_pictBuf2 = (uint8_t *)malloc(height * this->_pictBufLineSize);
+    this->_pictBuf2 = (uint16_t *)malloc(height * this->_pictBufLineSize * 2);
 }
 
 World::~World()
@@ -30,7 +30,7 @@ World::~World()
 void World::putBoard(Clip *clip)
 {
     struct SwsContext *swsCtx = sws_getContext(
-        clip->_width, clip->_height, PIX_FMT_RGB24,
+        clip->_width, clip->_height, PIX_FMT_RGB48,
         _width, _height, PIX_FMT_RGB24,
         SWS_BILINEAR, NULL, NULL, NULL);
     this->_boards.push_back((boardData){this->_boardsTotalLen, clip, swsCtx});
@@ -54,34 +54,35 @@ uint8_t *World::getFrame(int frameIdx)
     }
     clip->update(seconds - this->_curClipItr->startTime);
 
-#define ALPHA_BLEND(__var, __alpha) (__var = (double)(__var) * (__alpha) / 255.0)
+#define ALPHA_BLEND1(__var, __val, __alpha) (__var = (double)(__val) * (__alpha) / 16842495.0)
+#define ALPHA_BLEND2(__var, __alpha)        (__var = (double)(__var) * (__alpha) / 65535.0)
     static int i, j, t;
     if (clip->getWidth() == _width && clip->getHeight() == _height) {
         // NOTE: Equal widths lead to equal line sizes
-        memcpy(this->_pictBuf, clip->getPicture(), _height * this->_pictBufLineSize);
+        memcpy(this->_pictBuf2, clip->getPicture(), _height * this->_pictBufLineSize * 2);
         for (i = 0; i < this->_height; ++i)
             for (j = 0; j < this->_width; ++j) {
                 t = clip->_pictAlpha[i * clip->_width + j];
-                ALPHA_BLEND(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 0], t);
-                ALPHA_BLEND(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 1], t);
-                ALPHA_BLEND(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 2], t);
+                ALPHA_BLEND1(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 0], this->_pictBuf2[i * this->_pictBufLineSize + j * 3 + 0], t);
+                ALPHA_BLEND1(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 1], this->_pictBuf2[i * this->_pictBufLineSize + j * 3 + 1], t);
+                ALPHA_BLEND1(this->_pictBuf[i * this->_pictBufLineSize + j * 3 + 2], this->_pictBuf2[i * this->_pictBufLineSize + j * 3 + 2], t);
             }
     } else {
         static const uint8_t *inPictArr[4] = { 0 };
         static uint8_t *outPictArr[4] = { 0 };
         static int inLineSizeArr[4] = { 0 };
         static int outLineSizeArr[4] = { 0 };
-        memcpy(this->_pictBuf2, clip->getPicture(), clip->_height * clip->getLineSize());
+        memcpy(this->_pictBuf2, clip->getPicture(), clip->_height * clip->getLineSize() * sizeof(uint16_t));
         for (i = 0; i < clip->_height; ++i)
             for (j = 0; j < clip->_width; ++j) {
                 t = clip->_pictAlpha[i * clip->_width + j];
-                ALPHA_BLEND(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 0], t);
-                ALPHA_BLEND(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 1], t);
-                ALPHA_BLEND(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 2], t);
+                ALPHA_BLEND2(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 0], t);
+                ALPHA_BLEND2(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 1], t);
+                ALPHA_BLEND2(this->_pictBuf2[i * clip->getLineSize() + j * 3 + 2], t);
             }
-        inPictArr[0] = _pictBuf2;
+        inPictArr[0] = (uint8_t *)this->_pictBuf2;
         outPictArr[0] = this->_pictBuf;
-        inLineSizeArr[0] = clip->getLineSize();
+        inLineSizeArr[0] = clip->getLineSize() * sizeof(uint16_t);
         outLineSizeArr[0] = this->_pictBufLineSize;
         sws_scale(this->_curClipItr->swsCtx,
             inPictArr, inLineSizeArr, 0, clip->getHeight(),

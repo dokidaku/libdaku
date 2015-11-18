@@ -16,7 +16,7 @@ public:
     virtual void init();
     virtual void prepare();
     virtual void update(float time) = 0;
-    inline uint8_t *getPicture() { return _hasPicture ? _picture : NULL; }
+    inline uint16_t *getPicture() { return _hasPicture ? _picture : NULL; }
     inline int getLineSize() { return _hasPicture ? _lineSize : -1; }
     inline int getWidth() { return _hasPicture ? _width : -1; }
     inline int getHeight() { return _hasPicture ? _height : -1; }
@@ -38,8 +38,8 @@ protected:
     Node *_parent;
 
     bool _hasPicture;
-    uint8_t *_picture;
-    uint8_t *_pictAlpha;
+    uint16_t *_picture;
+    uint16_t *_pictAlpha;
     int _lineSize;
 };
 
