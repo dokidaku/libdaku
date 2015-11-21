@@ -37,7 +37,7 @@ void World::putBoard(Clip *clip)
     this->_boardsTotalLen += clip->_lifeTime;
 }
 
-uint8_t *World::getFrame(int frameIdx)
+uint8_t *World::getFrame(int frameIdx, bool seeking)
 {
     if (this->_curClipItr == this->_boards.end()) {
         memset(this->_pictBuf, 0, this->_height * this->_pictBufLineSize);
@@ -45,13 +45,17 @@ uint8_t *World::getFrame(int frameIdx)
     }
     float seconds = (float)frameIdx * _frameRateDeno / _frameRateNum;
     Clip *clip = this->_curClipItr->clip;
-    while (this->_curClipItr->startTime + clip->_lifeTime < seconds) {
+    if (seeking && this->_curClipItr->startTime + this->_curClipItr->clip->_lifeTime > seconds)
+        // TODO: Use binary chop for better performance
+        this->_curClipItr = this->_boards.begin();
+    while (this->_curClipItr->startTime + this->_curClipItr->clip->_lifeTime < seconds) {
         if (++this->_curClipItr == this->_boards.end()) {
+            --this->_curClipItr;
             memset(this->_pictBuf, 0, this->_height * this->_pictBufLineSize);
             return this->_pictBuf;
         }
-        (clip = this->_curClipItr->clip)->prepare();
     }
+    (clip = this->_curClipItr->clip)->prepare();
     clip->update(seconds - this->_curClipItr->startTime);
 
 #define ALPHA_BLEND1(__var, __val, __alpha) (__var = (double)(__val) * (__alpha) / 16842495.0)
@@ -113,6 +117,8 @@ int World::writeToFile(const char *path)
         return ret;
     }
 
+    // for (int i = _duration * _frameRateNum / _frameRateDeno; i >= 0; --i) {
+    //     uint8_t *frame = this->getFrame(i, true);
     for (int i = 0; i < _duration * _frameRateNum / _frameRateDeno; ++i) {
         uint8_t *frame = this->getFrame(i);
         frame_pusher_write_video(pusher, frame, this->_pictBufLineSize, 1);

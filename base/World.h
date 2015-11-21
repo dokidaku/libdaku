@@ -20,7 +20,7 @@ public:
 
     void putBoard(Clip *clip);
 
-    uint8_t *getFrame(int frameIdx);
+    uint8_t *getFrame(int frameIdx, bool seeking = false);
     int writeToFile(const char *path);
 
     friend class Node;
