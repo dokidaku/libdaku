@@ -7,6 +7,7 @@
 namespace daku {
 
 class World;
+class Clip;
 
 class Node {
 public:
@@ -21,7 +22,7 @@ public:
     inline int getWidth() { return _hasPicture ? _width : -1; }
     inline int getHeight() { return _hasPicture ? _height : -1; }
 
-    Node *addChild(Node *child, int zOrder = 0);
+    Node *addChild(Node *child, float startTime, int zOrder = 0);
 
     friend class World;
 
@@ -33,7 +34,7 @@ protected:
     int _width, _height;
     int _zOrder;
     double _x, _y, _ax, _ay;
-    float _lifeTime;
+    float _startTime, _lifeTime;
     std::vector<Node *> _children;
     Node *_parent;
 
@@ -41,6 +42,8 @@ protected:
     uint16_t *_picture;
     uint16_t *_pictAlpha;
     int _lineSize;
+
+    friend class Clip;
 };
 
 }

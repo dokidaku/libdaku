@@ -15,9 +15,12 @@ public:
     virtual void init(int width, int height, float lifeTime = 0);
     virtual void prepare();
     void update(float time);
-    // virtual void update(float time) = 0;
+    virtual void draw(float time);  // = 0;
 
 protected:
+    void drawChild(Clip *child, float time);
+
+    friend class Node;
 };
 
 }

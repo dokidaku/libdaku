@@ -19,7 +19,7 @@ void Node::init()
     this->_zOrder = 0;
     this->_x = this->_y = 0;
     this->_ax = this->_ay = 0.5;
-    this->_lifeTime = 0;
+    this->_startTime = this->_lifeTime = 0;
     this->_parent = NULL;
     this->_picture = NULL;
 }
@@ -29,8 +29,9 @@ void Node::prepare()
     std::sort(_children.begin(), _children.end(), Node::zOrderCmp);
 }
 
-Node *Node::addChild(Node *child, int zOrder)
+Node *Node::addChild(Node *child, float startTime, int zOrder)
 {
+    child->_startTime = startTime;
     child->_zOrder = zOrder;
     this->_children.push_back(child);
     return child;
